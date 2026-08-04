@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#1a1a2e">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Don't Touch the Spikes</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <canvas id="gameCanvas"></canvas>
+
+  <div id="startScreen" class="overlay">
+    <div class="overlay-content">
+      <h1>Don't Touch<br>the Spikes</h1>
+      <p class="subtitle">Tap or press Space to play</p>
+      <label class="toggle-container">
+        <input type="checkbox" id="botToggle">
+        <span class="toggle-slider"></span>
+        <span id="botLabel" class="toggle-text">Manual Mode</span>
+      </label>
+    </div>
+  </div>
+
+  <div id="gameOverScreen" class="overlay hidden">
+    <div class="overlay-content">
+      <h2>Game Over</h2>
+      <div class="score-display">
+        <div class="score-item">
+          <span class="score-label">Score</span>
+          <span id="finalScore" class="score-value">0</span>
+        </div>
+        <div class="score-item">
+          <span class="score-label">Best</span>
+          <span id="bestScore" class="score-value">0</span>
+        </div>
+      </div>
+      <p class="subtitle">Tap to retry</p>
+    </div>
+  </div>
+
+  <script type="module" src="js/main.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js');
+    }
+  </script>
+</body>
+</html>

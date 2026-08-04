@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#1a1a2e">
+    <meta name="description" content="Don't Touch the Spikes - Automated Game Bot PWA">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Spike Bot">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/svg+xml" href="icon.svg">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <title>Don't Touch the Spikes - Bot</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app">
+        <div id="ui-overlay">
+            <div id="score-display">
+                <span id="score">0</span>
+            </div>
+            <div id="high-score-display">Best: <span id="high-score">0</span></div>
+        </div>
+
+        <canvas id="game-canvas"></canvas>
+
+        <div id="start-screen" class="screen">
+            <h1>Don't Touch<br>the Spikes</h1>
+            <p class="subtitle">Tap to play or let the bot handle it</p>
+            <div class="controls">
+                <button id="play-btn" class="btn btn-primary">Play</button>
+                <button id="bot-btn" class="btn btn-bot">Bot: OFF</button>
+            </div>
+            <div class="bot-speed-control" id="speed-control" style="display:none;">
+                <label>Bot Speed</label>
+                <input type="range" id="bot-speed" min="1" max="5" value="3">
+                <span id="speed-label">Normal</span>
+            </div>
+        </div>
+
+        <div id="game-over-screen" class="screen" style="display:none;">
+            <h2>Game Over</h2>
+            <p>Score: <span id="final-score">0</span></p>
+            <p>Best: <span id="final-high-score">0</span></p>
+            <div class="controls">
+                <button id="retry-btn" class="btn btn-primary">Retry</button>
+            </div>
+        </div>
+
+        <div id="bot-status" style="display:none;">
+            <span class="bot-indicator"></span> BOT ACTIVE
+        </div>
+
+        <div id="install-prompt" style="display:none;">
+            <span>Install App</span>
+            <button id="install-btn" class="btn-install">Install</button>
+            <button id="dismiss-install" class="btn-dismiss">&times;</button>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+    <script src="bot.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

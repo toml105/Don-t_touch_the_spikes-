@@ -1061,7 +1061,7 @@ function frame() {
   } else if (G.panel === 'gear') {
     wantZ = G.focus > 0 ? 5.6 : 7.5;
     wantX = hook.position.x;
-    camY = hook.position.y + 0.9 - visH(wantZ) * 0.18;
+    camY = hook.position.y + 0.9 - visH(wantZ) * 0.08;
   }
   if (G.focus > 0) G.focus -= realDt;
   const k = G.state === 'down' || G.state === 'up' ? 9 : 3;

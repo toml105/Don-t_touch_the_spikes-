@@ -108,6 +108,8 @@ button:focus-visible { outline: 3px solid var(--red); outline-offset: 2px; }
 #sheet {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 8; max-height: 70%;
   background: var(--paper); color: var(--ink); border-top: 4px solid var(--ink);
+  /* the shadow also stops Chrome treating this opaque sheet as hiding the whole 3D canvas */
+  box-shadow: 0 -10px 30px rgba(17, 17, 17, 0.18);
   padding: 14px var(--g) calc(env(safe-area-inset-bottom, 0px) + var(--g));
   display: flex; flex-direction: column; transform: translateY(105%); transition: transform .32s cubic-bezier(.2,.9,.3,1);
 }

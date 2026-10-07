@@ -592,13 +592,13 @@ function rebuildCars() {
   layoutTrain();
 }
 function layoutTrain() {
-  trainW = Math.min(8.5, viewW * 0.94);
+  trainW = Math.min(8, viewW * 0.84);
   const M = MODELS.train;
   if (trainModel) {
     if (trainModel.userData.card) { const ar = TEX.train ? TEX.train.image.width / TEX.train.image.height : 1.81; trainModel.scale.set(trainW, trainW / ar, 1); trainH = trainW / ar; }
     else { trainModel.scale.setScalar(trainW); trainH = trainW * (M ? M.h : 0.4); }
   }
-  const cx = halfW + 0.35 - trainW / 2 + 0.2;
+  const cx = halfW + 0.35 - trainW / 2 - 0.25;
   trainBody.position.set(0, 0, 0);
   if (trainModel) trainModel.position.set(0, 0, 0);
   trainGroup.position.set(cx, TRAIN_Y, -1.2);
@@ -667,29 +667,29 @@ const shieldMat = new THREE.ShaderMaterial({
     void main(){ float f = pow(1.0 - abs(dot(vN, vV)), 2.2);
       float hex = step(0.92, fract(vP.y * 9.0 + time * 0.6)) * 0.35;
       float a = (f + hex * f) * strength + hit * 0.6;
-      gl_FragColor = vec4(color * (1.2 + hit * 2.0), a); }`,
+      gl_FragColor = vec4(color * (0.7 + hit * 1.5), a); }`,
   transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
 });
 const shield = new THREE.Mesh(new THREE.SphereGeometry(0.62, 32, 20), shieldMat); shield.position.y = -0.05; hook.add(shield);
 const trail = new THREE.Mesh(new THREE.PlaneGeometry(0.22, 1), new THREE.MeshBasicMaterial({ map: trailTex, color: 0xffd98a, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending, fog: false }));
 scene.add(trail);
 const lineGeo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]);
-const lineMat = new THREE.LineBasicMaterial({ color: 0xfff4e2, transparent: true, opacity: 0.85, fog: false });
+const lineMat = new THREE.LineBasicMaterial({ color: 0xfff4e2, transparent: true, opacity: 0.6, fog: false });
 const line = new THREE.Line(lineGeo, lineMat); scene.add(line);
 const HOOK_HOME = new THREE.Vector3(0, 1.0, 0.4);
 
 function applyGearVisuals() {
   const ht = HOOK_TIERS[hookTier()], lt = LANTERN_TIERS[lanternTier()];
   hookMat.color.setHex(ht.color); hookMat.emissive.setHex(ht.emissive); hookMat.metalness = ht.metal; hookMat.roughness = ht.rough;
-  hookMat.emissiveIntensity = hookTier() >= 3 ? 1.4 : 0.6;
+  hookMat.emissiveIntensity = hookTier() >= 3 ? 0.55 : 0.3;
   hookRig.scale.setScalar(1 + S.gear.cap * 0.035);
   lanternMat.emissive.setHex(lt.color); lanternMat.emissiveIntensity = 1.6 + lanternTier() * 0.45;
   lanternLight.color.setHex(lt.color); lanternLight.intensity = 5 + S.gear.line * 0.7; lanternLight.distance = 8 + S.gear.line * 0.4;
   hookGlow.material.color.setHex(lt.color); hookGlow.userData.base = 1.1 + S.gear.line * 0.06;
-  lineMat.color.setHex(lt.color).lerp(new THREE.Color(0xffffff), 0.55);
+  lineMat.color.setHex(lt.color).lerp(new THREE.Color(0xffffff), 0.4).multiplyScalar(0.7);
   trail.material.color.setHex(lt.color);
   shield.visible = S.gear.shield > 0;
-  shieldMat.uniforms.strength.value = 0.35 + S.gear.shield * 0.12;
+  shieldMat.uniforms.strength.value = 0.18 + S.gear.shield * 0.06;
 }
 
 // ---------- Creatures -------------------------------------------------------
@@ -1051,13 +1051,13 @@ function frame() {
   // subject in the top quarter where the player can watch it change
   const visH = z => 2 * z * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
   if (G.panel === 'train') {
-    const span = trainSpan() + 1.5;
+    const span = trainSpan() + 3;
     const needZ = span / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * camera.aspect);
     wantZ = Math.max(CAM_Z, needZ);
-    wantX = trainGroup.position.x + trainW / 2 - span / 2 + 0.4;
+    wantX = trainGroup.position.x + trainW / 2 + 1 - span / 2;
     camY = TRAIN_Y + 0.9 - visH(wantZ) * 0.3;
   } else if (G.panel === 'gear') {
-    wantZ = G.focus > 0 ? 4.6 : 6.5;
+    wantZ = G.focus > 0 ? 5.6 : 7.5;
     wantX = hook.position.x;
     camY = hook.position.y + 0.9 - visH(wantZ) * 0.3;
   }
@@ -1241,6 +1241,7 @@ function welcomeBack() {
 }
 
 // ---------- Boot --------------------------------------------------------------
+window.__cloudline = { G, S, hook, camera }; // handy for poking at the game from devtools
 (async function boot() {
   resize();
   let texDone = 0, packP = 0;

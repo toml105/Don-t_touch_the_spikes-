@@ -2,7 +2,7 @@
 
 A sky-fishing tycoon built for phone sessions on a train. You run a flying steam train above an endless sea of clouds. Drop a lantern hook through five painted layers of sky, catch strange creatures on the way back up, and sell the haul to grow the train.
 
-All art was generated with Higgsfield: the painted skies with GPT Image 2.5, and the train, carriage and 15 creatures turned into textured 3D models with Higgsfield image-to-3D. The models ship as one compressed zip (meshopt geometry, WebP textures, 3.7 MB) from Higgsfield's CDN. The scene is rendered with Three.js in a low-poly style: the painted skies are re-cut as a triangle mosaic in a shader, the models are snapped to a coarse vertex grid with flat shading, and the clouds are faceted 3D islands. Each layer has its own lighting. The interface follows Swiss typographic style: one grotesk (Archivo), a strict grid, hairline rules and a single red accent.
+All art was generated with Higgsfield: the painted skies with GPT Image 2.5, and the train, carriage and 15 creatures turned into textured 3D models with Higgsfield image-to-3D. The models ship as one compressed zip (meshopt geometry, WebP textures, 3.7 MB) from Higgsfield's CDN. The scene is rendered with Three.js, blending realism with a light low-poly touch: the painted skies show through with a fine faceted grain, the models keep their full painted detail with crisply cut silhouettes, and the clouds are faceted 3D islands. Each layer has its own lighting. The interface follows Swiss typographic style: one grotesk (Archivo), a strict grid, hairline rules and a single red accent.
 
 ## How to play
 

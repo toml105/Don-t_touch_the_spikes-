@@ -209,6 +209,7 @@ scene.environment = pmrem.fromScene(new RoomEnvironment(renderer), 0.04).texture
 const hemi = new THREE.HemisphereLight(0xffe6d2, 0x9a6f8c, 1.1); scene.add(hemi);
 const sun = new THREE.DirectionalLight(0xffd2a0, 2.6); sun.position.set(6, 10, 8); scene.add(sun); scene.add(sun.target);
 const rim = new THREE.DirectionalLight(0xffb38a, 1.6); rim.position.set(-6, 3, -10); scene.add(rim); scene.add(rim.target);
+const fill = new THREE.DirectionalLight(0xffffff, 0.9); fill.position.set(0, 0.5, 1); camera.add(fill); camera.add(fill.target); fill.target.position.set(0, 0, -1);
 
 const composer = new EffectComposer(renderer);
 composer.addPass(new RenderPass(scene, camera));
@@ -299,21 +300,27 @@ function prepModel(gltf, key) {
     o.frustumCulled = true;
     const m = o.material;
     if (m && m.isMeshStandardMaterial) {
-      m.flatShading = true; // low-poly facets
+      // smooth shading keeps the painted detail readable; the low-poly flavour
+      // comes from the clouds, props and a light silhouette pass below
+      m.flatShading = false;
       m.needsUpdate = true;
-      m.roughness = clamp(m.roughness ?? 0.8, 0.5, 0.95);
+      m.roughness = clamp(m.roughness ?? 0.8, 0.4, 0.85);
       m.metalness = Math.min(m.metalness ?? 0, key === 'train' || key === 'carriage' || key === 'carp' ? 0.45 : 0.15);
-      m.envMapIntensity = 0.6;
+      m.envMapIntensity = 0.8;
+      // a little self-illumination from the texture so creatures read clearly on every sky
+      m.emissiveMap = m.map;
       if (sp && sp.glow) { // rare creatures shine with their own colours under bloom
         m.emissive = new THREE.Color(sp.glow);
-        m.emissiveMap = m.map;
         m.emissiveIntensity = sp.rare ? 0.55 : 0.3;
+      } else if (sp) {
+        m.emissive = new THREE.Color(0xffffff);
+        m.emissiveIntensity = 0.22;
       }
     }
   });
-  // Low-poly pass: snap every vertex to a coarse grid so the surface collapses into
-  // big flat facets (textures and UVs stay intact). The train keeps finer detail.
-  const cellsAcross = key === 'train' ? 70 : key === 'carriage' ? 40 : 16;
+  // Light low-poly pass: snap vertices to a fine grid so silhouettes get crisp,
+  // slightly cut edges while the shape and texture stay true to the art.
+  const cellsAcross = key === 'train' ? 110 : key === 'carriage' ? 70 : 44;
   root.traverse(o => {
     if (!o.isMesh) return;
     const pos = o.geometry.attributes.position;
@@ -369,18 +376,20 @@ const backMat = new THREE.ShaderMaterial({
     void main(){
       // the painting, re-cut as a low-poly triangle mesh: every facet takes the colour at its centre
       vec2 uv = (vUv - 0.5) * scl + 0.5; uv.y += scroll;
-      vec2 cells = vec2(22.0, 22.0 * 1.786);
+      vec2 cells = vec2(56.0, 56.0 * 1.786);
       vec2 g = uv * cells; vec2 id = floor(g); vec2 f = fract(g);
       bool flip = mod(id.x + id.y, 2.0) > 0.5;
       if (flip) f.x = 1.0 - f.x;
       bool upper = f.y > f.x;
       vec2 c2 = upper ? vec2(1.0 / 3.0, 2.0 / 3.0) : vec2(2.0 / 3.0, 1.0 / 3.0);
       if (flip) c2.x = 1.0 - c2.x;
-      vec3 c = samp((id + c2) / cells) * dim;
-      c *= 1.0 + (hash(id + (upper ? 0.37 : 0.71)) - 0.5) * 0.09 + (upper ? 0.03 : -0.03);
-      float v = smoothstep(1.1, 0.25, length(vUv - 0.5)); c *= mix(0.5, 1.0, v);
+      vec3 facet = samp((id + c2) / cells);
+      facet *= 1.0 + (hash(id + (upper ? 0.37 : 0.71)) - 0.5) * 0.06 + (upper ? 0.02 : -0.02);
+      // mostly the real painting, with a fine faceted grain laid over it
+      vec3 c = mix(samp(uv), facet, 0.4) * dim;
+      float v = smoothstep(1.2, 0.3, length(vUv - 0.5)); c *= mix(0.72, 1.0, v);
       c += flash * vec3(0.75, 0.8, 1.0) * (0.4 + 0.6 * c);
-      gl_FragColor = vec4(pow(c, vec3(1.12)) * 0.78, 1.0);
+      gl_FragColor = vec4(c * 0.9, 1.0);
       #include <colorspace_fragment>
     }`,
   depthWrite: false, fog: false, toneMapped: false,
@@ -405,7 +414,7 @@ function cloudGeometry() {
   const n = 4 + Math.floor(Math.random() * 3);
   for (let i = 0; i < n; i++) {
     const r = rand(0.38, 0.7);
-    const g = new THREE.IcosahedronGeometry(r, 0);
+    const g = new THREE.IcosahedronGeometry(r, 1);
     g.rotateY(rand(0, 6)); g.rotateX(rand(0, 6));
     g.translate((i / (n - 1) - 0.5) * 1.7 + rand(-0.15, 0.15), r * 0.35 + rand(-0.05, 0.12), rand(-0.3, 0.3));
     parts.push(g);
@@ -413,7 +422,7 @@ function cloudGeometry() {
   const m = mergeGeometries(parts); m.scale(1, 0.72, 0.85);
   return m;
 }
-const cloudMat = new THREE.MeshStandardMaterial({ color: 0xffffff, flatShading: true, roughness: 0.95, metalness: 0, emissive: 0x332a33, envMapIntensity: 0.3 });
+const cloudMat = new THREE.MeshStandardMaterial({ color: 0xffffff, flatShading: true, roughness: 0.9, metalness: 0, emissive: 0x4a4048, envMapIntensity: 0.4 });
 const cloudSets = [];
 function cloudField(count, place) {
   const geos = [cloudGeometry(), cloudGeometry(), cloudGeometry()];

@@ -51,7 +51,7 @@ const iconUrl = key => CDN + ASSETS[key][0] + '.webp';
 // ---------- World data ----------------------------------------------------
 // Each layer has its own light: sun colour/strength, sky & ground bounce, rim light.
 const BIOMES = [
-  { id: 'cloud',  name: 'Cloud Sea',       from: 0,   to: 120,  bg: 'bg_cloud',  fog: 0xf2c3b4, puff: 0xffffff, tint: '#ffd9c2', sun: 0xffd2a0, sunI: 2.6, sky: 0xffe6d2, ground: 0x9a6f8c, rim: 0xffb38a, exp: 1.05 },
+  { id: 'cloud',  name: 'Cloud Sea',       from: 0,   to: 120,  bg: 'bg_cloud',  fog: 0xf2c3b4, puff: 0xffffff, tint: '#ffd9c2', sun: 0xffd2a0, sunI: 2.4, sky: 0xffe6d2, ground: 0x7a5a7c, rim: 0xffb38a, exp: 0.92 },
   { id: 'storm',  name: 'Storm Belt',      from: 120, to: 300,  bg: 'bg_storm',  fog: 0x2c2a63, puff: 0x8f94d6, tint: '#8f94d6', sun: 0xb4bcff, sunI: 1.3, sky: 0x8a90ff, ground: 0x1a1840, rim: 0x6fa8ff, exp: 1.15, lightning: true },
   { id: 'aurora', name: 'Aurora Reef',     from: 300, to: 550,  bg: 'bg_aurora', fog: 0x0f2f48, puff: 0x63e2d3, tint: '#63e2d3', sun: 0x9fffe8, sunI: 1.5, sky: 0x63e2d3, ground: 0x2a1050, rim: 0xff7bd5, exp: 1.2 },
   { id: 'ruins',  name: 'Sunken Sky City', from: 550, to: 850,  bg: 'bg_ruins',  fog: 0x18265a, puff: 0xf3c46b, tint: '#f3c46b', sun: 0xffc27a, sunI: 1.7, sky: 0xffd08a, ground: 0x152050, rim: 0x7fb4ff, exp: 1.2 },
@@ -211,7 +211,7 @@ const rim = new THREE.DirectionalLight(0xffb38a, 1.6); rim.position.set(-6, 3, -
 
 const composer = new EffectComposer(renderer);
 composer.addPass(new RenderPass(scene, camera));
-const bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.7, 0.55, 0.8);
+const bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.5, 0.4, 0.92);
 composer.addPass(bloom);
 composer.addPass(new OutputPass());
 
@@ -349,9 +349,9 @@ const backMat = new THREE.ShaderMaterial({
     void main(){
       vec2 uv = m(vUv);
       vec3 c = mix(texture2D(tA, uv).rgb, texture2D(tB, uv).rgb, mixv) * dim;
-      float v = smoothstep(1.15, 0.3, length(vUv - 0.5)); c *= mix(0.62, 1.0, v);
+      float v = smoothstep(1.1, 0.25, length(vUv - 0.5)); c *= mix(0.5, 1.0, v);
       c += flash * vec3(0.75, 0.8, 1.0) * (0.4 + 0.6 * c);
-      gl_FragColor = vec4(c * 0.92, 1.0);
+      gl_FragColor = vec4(pow(c, vec3(1.12)) * 0.78, 1.0);
       #include <colorspace_fragment>
     }`,
   depthWrite: false, fog: false, toneMapped: false,
@@ -378,7 +378,7 @@ function buildDecor() {
     const b = biomeAt(-y);
     const z = rand(-40, -6);
     const spread = (viewW / 2 + 6) * (CAM_Z - z) / CAM_Z;
-    const m = cloudPuff(b.puff, rand(0.22, 0.55));
+    const m = cloudPuff(b.puff, rand(0.1, 0.3));
     const s = rand(6, 18); m.scale.set(s, s * 0.5, 1);
     m.position.set(rand(-spread, spread), y + rand(-1.5, 1.5), z);
     m.userData.drift = rand(-0.3, 0.3);
@@ -411,7 +411,7 @@ function buildRays() {
     m.scale.set(rand(1.5, 4), rand(18, 30), 1);
     m.position.set(rand(-12, 12), rand(-14, -4), rand(-18, -6));
     m.rotation.z = -0.35; m.rotation.x = Math.PI;
-    m.userData.base = m.material.opacity = rand(0.05, 0.14); m.userData.ph = rand(0, 6);
+    m.userData.base = m.material.opacity = rand(0.03, 0.08); m.userData.ph = rand(0, 6);
     rays.add(m);
   }
 }
@@ -425,10 +425,10 @@ const motes = (() => {
 // a thick cloud bank under the train that the hook plunges through
 const surfaceBank = new THREE.Group(); scene.add(surfaceBank);
 function buildSurface() {
-  for (let i = 0; i < 34; i++) {
-    const m = cloudPuff(0xfff1e6, rand(0.55, 0.92));
-    const s = rand(5, 11); m.scale.set(s, s * 0.5, 1);
-    m.position.set(rand(-13, 13), rand(-2.8, -0.2), rand(-5, 4));
+  for (let i = 0; i < 24; i++) {
+    const m = cloudPuff(0xfff1e6, rand(0.25, 0.55));
+    const s = rand(5, 10); m.scale.set(s, s * 0.45, 1);
+    m.position.set(rand(-13, 13), rand(-3.2, -1.4), rand(-7, -0.5));
     m.userData.drift = rand(0.4, 1.1);
     surfaceBank.add(m);
   }
@@ -592,13 +592,13 @@ function rebuildCars() {
   layoutTrain();
 }
 function layoutTrain() {
-  trainW = Math.min(9.5, viewW * 1.05);
+  trainW = Math.min(8.5, viewW * 0.94);
   const M = MODELS.train;
   if (trainModel) {
     if (trainModel.userData.card) { const ar = TEX.train ? TEX.train.image.width / TEX.train.image.height : 1.81; trainModel.scale.set(trainW, trainW / ar, 1); trainH = trainW / ar; }
     else { trainModel.scale.setScalar(trainW); trainH = trainW * (M ? M.h : 0.4); }
   }
-  const cx = halfW + 0.35 - trainW / 2 + 0.6;
+  const cx = halfW + 0.35 - trainW / 2 + 0.2;
   trainBody.position.set(0, 0, 0);
   if (trainModel) trainModel.position.set(0, 0, 0);
   trainGroup.position.set(cx, TRAIN_Y, -1.2);
@@ -658,7 +658,7 @@ const lanternMat = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0
 })();
 const lanternLight = new THREE.PointLight(0xffb35c, 6, 9, 1.6); lanternLight.position.y = 0.36; hook.add(lanternLight);
 const hookGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: 0xffb35c, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false }));
-hookGlow.position.y = 0.36; hookGlow.scale.setScalar(2.2); hook.add(hookGlow);
+hookGlow.position.y = 0.36; hookGlow.scale.setScalar(1.2); hookGlow.material.opacity = 0.7; hook.add(hookGlow);
 const shieldMat = new THREE.ShaderMaterial({
   uniforms: { color: { value: new THREE.Color(0x7ff5e6) }, strength: { value: 0.6 }, time: { value: 0 }, hit: { value: 0 } },
   vertexShader: `varying vec3 vN; varying vec3 vV; varying vec3 vP;
@@ -683,9 +683,9 @@ function applyGearVisuals() {
   hookMat.color.setHex(ht.color); hookMat.emissive.setHex(ht.emissive); hookMat.metalness = ht.metal; hookMat.roughness = ht.rough;
   hookMat.emissiveIntensity = hookTier() >= 3 ? 1.4 : 0.6;
   hookRig.scale.setScalar(1 + S.gear.cap * 0.035);
-  lanternMat.emissive.setHex(lt.color); lanternMat.emissiveIntensity = 2.5 + lanternTier() * 0.6;
+  lanternMat.emissive.setHex(lt.color); lanternMat.emissiveIntensity = 1.6 + lanternTier() * 0.45;
   lanternLight.color.setHex(lt.color); lanternLight.intensity = 5 + S.gear.line * 0.7; lanternLight.distance = 8 + S.gear.line * 0.4;
-  hookGlow.material.color.setHex(lt.color); hookGlow.userData.base = 1.8 + S.gear.line * 0.09;
+  hookGlow.material.color.setHex(lt.color); hookGlow.userData.base = 1.1 + S.gear.line * 0.06;
   lineMat.color.setHex(lt.color).lerp(new THREE.Color(0xffffff), 0.55);
   trail.material.color.setHex(lt.color);
   shield.visible = S.gear.shield > 0;
@@ -1047,17 +1047,21 @@ function frame() {
   if (G.state === 'down') camY = hook.position.y - viewH * 0.18;
   else if (G.state === 'up') camY = hook.position.y + viewH * 0.16;
   if (G.state === 'down' || G.state === 'up') wantX = hook.position.x * 0.22;
-  if (G.panel === 'train' && carGroups.length) {
-    const span = trainSpan() + 2;
+  // with a panel open the sheet covers the lower screen, so frame the
+  // subject in the top quarter where the player can watch it change
+  const visH = z => 2 * z * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+  if (G.panel === 'train') {
+    const span = trainSpan() + 1.5;
     const needZ = span / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * camera.aspect);
-    wantZ = Math.max(CAM_Z, needZ * 0.95);
-    wantX = trainGroup.position.x + trainW / 2 - span / 2 + 0.6;
-    camY = TRAIN_Y - (wantZ - CAM_Z) * 0.12;
+    wantZ = Math.max(CAM_Z, needZ);
+    wantX = trainGroup.position.x + trainW / 2 - span / 2 + 0.4;
+    camY = TRAIN_Y + 0.9 - visH(wantZ) * 0.3;
+  } else if (G.panel === 'gear') {
+    wantZ = G.focus > 0 ? 4.6 : 6.5;
+    wantX = hook.position.x;
+    camY = hook.position.y + 0.9 - visH(wantZ) * 0.3;
   }
-  if (G.focus > 0) { // upgrade showcase: swoop in on the hook
-    G.focus -= realDt;
-    wantX = hook.position.x; camY = hook.position.y + 0.2; wantZ = 6.5;
-  }
+  if (G.focus > 0) G.focus -= realDt;
   const k = G.state === 'down' || G.state === 'up' ? 9 : 3;
   camera.position.y = damp(camera.position.y, camY, k, realDt);
   G.camX = damp(G.camX, wantX, 3, realDt); G.camZ = damp(G.camZ, wantZ, 3, realDt);

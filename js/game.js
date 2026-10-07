@@ -422,7 +422,7 @@ function cloudGeometry() {
   const m = mergeGeometries(parts); m.scale(1, 0.72, 0.85);
   return m;
 }
-const cloudMat = new THREE.MeshStandardMaterial({ color: 0xffffff, flatShading: true, roughness: 0.9, metalness: 0, emissive: 0x4a4048, envMapIntensity: 0.4 });
+const cloudMat = new THREE.MeshStandardMaterial({ color: 0xffffff, flatShading: true, roughness: 0.9, metalness: 0, emissive: 0x241f24, envMapIntensity: 0.3 });
 const cloudSets = [];
 function cloudField(count, place) {
   const geos = [cloudGeometry(), cloudGeometry(), cloudGeometry()];
@@ -491,7 +491,7 @@ function buildSurface() {
   // the cloud deck right under the train, drifting past as the train flies
   cloudField(30, () => {
     const z = rand(-11, -3.5), wrap = 16;
-    return { x: rand(-wrap, wrap), y: rand(-3.4, -1.8), z, s: rand(2.4, 4.4), sy: rand(0.8, 1.1), rot: rand(-0.4, 0.4), drift: -rand(0.6, 1.4), wrap, color: 0xffffff };
+    return { x: rand(-wrap, wrap), y: rand(-3.4, -1.8), z, s: rand(2.4, 4.4), sy: rand(0.8, 1.1), rot: rand(-0.4, 0.4), drift: -rand(0.6, 1.4), wrap, color: 0xeee2de };
   });
 }
 

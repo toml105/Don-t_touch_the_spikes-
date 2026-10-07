@@ -471,9 +471,10 @@ const triTex = (() => {
 })();
 const motes = (() => {
   const n = 500, pos = new Float32Array(n * 3);
-  for (let i = 0; i < n; i++) { pos[i * 3] = rand(-11, 11); pos[i * 3 + 1] = rand(-MAX_D, 6); pos[i * 3 + 2] = rand(-5, 6); }
+  // kept behind the play plane so close-up camera moves never sweep through them
+  for (let i = 0; i < n; i++) { pos[i * 3] = rand(-11, 11); pos[i * 3 + 1] = rand(-MAX_D, 6); pos[i * 3 + 2] = rand(-7, -1.5); }
   const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-  const m = new THREE.PointsMaterial({ map: triTex, size: 0.16, transparent: true, opacity: 0.85, depthWrite: false, color: 0xffffff, alphaTest: 0.3 });
+  const m = new THREE.PointsMaterial({ map: triTex, size: 0.14, transparent: true, opacity: 0.85, depthWrite: false, color: 0xffffff, alphaTest: 0.3 });
   const p = new THREE.Points(g, m); scene.add(p); return p;
 })();
 // a thick cloud bank under the train that the hook plunges through

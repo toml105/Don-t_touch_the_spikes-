@@ -85,8 +85,8 @@ const HOOK_TIERS = [
   { name: 'Brass',      color: 0xc08a45, emissive: 0x000000, metal: 1, rough: 0.35 },
   { name: 'Silver',     color: 0xe6ebf2, emissive: 0x000000, metal: 1, rough: 0.18 },
   { name: 'Gold',       color: 0xffc94a, emissive: 0x3a2400, metal: 1, rough: 0.15 },
-  { name: 'Crystal',    color: 0x9ff3ff, emissive: 0x1aa6c4, metal: 0.2, rough: 0.05 },
-  { name: 'Starforged', color: 0xd9b8ff, emissive: 0x8a4dff, metal: 0.6, rough: 0.1 },
+  { name: 'Crystal',    color: 0x7fd8ea, emissive: 0x0e6f86, metal: 0.3, rough: 0.12 },
+  { name: 'Starforged', color: 0xb894f0, emissive: 0x5a2dc0, metal: 0.6, rough: 0.15 },
 ];
 const LANTERN_TIERS = [
   { name: 'Candle',   color: 0xffb35c },
@@ -657,7 +657,8 @@ const lanternMat = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0
   cage.position.y = 0.36; hookRig.add(cage);
   const orb = new THREE.Mesh(new THREE.SphereGeometry(0.085, 16, 12), lanternMat); orb.position.y = 0.36; hookRig.add(orb);
 })();
-const lanternLight = new THREE.PointLight(0xffb35c, 6, 9, 1.6); lanternLight.position.y = 0.36; hook.add(lanternLight);
+// sits in front of the hook so it lights passing creatures without blowing out the hook itself
+const lanternLight = new THREE.PointLight(0xffb35c, 3, 8, 1.2); lanternLight.position.set(0, 0.5, 1.4); hook.add(lanternLight);
 const hookGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: 0xffb35c, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false }));
 hookGlow.position.y = 0.36; hookGlow.scale.setScalar(1.2); hookGlow.material.opacity = 0.45; hook.add(hookGlow);
 const shieldMat = new THREE.ShaderMaterial({
@@ -685,7 +686,7 @@ function applyGearVisuals() {
   hookMat.emissiveIntensity = hookTier() >= 3 ? 0.55 : 0.3;
   hookRig.scale.setScalar(1 + S.gear.cap * 0.035);
   lanternMat.emissive.setHex(lt.color); lanternMat.emissiveIntensity = 1.4 + lanternTier() * 0.25;
-  lanternLight.color.setHex(lt.color); lanternLight.intensity = 5 + S.gear.line * 0.7; lanternLight.distance = 8 + S.gear.line * 0.4;
+  lanternLight.color.setHex(lt.color); lanternLight.intensity = 2.5 + S.gear.line * 0.25; lanternLight.distance = 7 + S.gear.line * 0.3;
   hookGlow.material.color.setHex(lt.color); hookGlow.userData.base = 1 + S.gear.line * 0.04;
   lineMat.color.setHex(lt.color).lerp(new THREE.Color(0xffffff), 0.4).multiplyScalar(0.7);
   trail.material.color.setHex(lt.color);

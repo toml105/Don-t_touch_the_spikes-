@@ -312,7 +312,8 @@ function prepModel(gltf, key) {
   const size = box.getSize(new THREE.Vector3()), c = box.getCenter(new THREE.Vector3());
   root.position.sub(c);
   const pivot = new THREE.Group(); pivot.add(root);
-  const facesRight = key === 'train' || (sp && sp.flip);
+  // the train model came out mirrored (locomotive at -X), so it is handled like a left-facing creature
+  const facesRight = !!(sp && sp.flip);
   const alongX = size.x > size.z * 1.15;
   if (alongX) pivot.rotation.y = facesRight ? 0 : Math.PI;
   else pivot.rotation.y = facesRight ? -Math.PI / 2 : Math.PI / 2;
@@ -619,7 +620,7 @@ const trainSpan = () => trainW + carGroups.length * trainW * 0.3 * 1.02;
 const smoke = [];
 function trainSmoke(dt) {
   if (!trainModel || Math.random() > dt * 6) return;
-  const p = new THREE.Vector3(trainW * 0.3, trainH * 0.55, 0); trainBody.localToWorld(p);
+  const p = new THREE.Vector3(trainW * 0.4, trainH * 0.42, 0); trainBody.localToWorld(p);
   const m = new THREE.Sprite(new THREE.SpriteMaterial({ map: puffTex, color: 0xffffff, transparent: true, opacity: 0.7, depthWrite: false }));
   m.position.copy(p); m.scale.setScalar(0.6);
   m.userData = { life: 2.2 }; scene.add(m); smoke.push(m);
@@ -658,7 +659,7 @@ const lanternMat = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0
 })();
 const lanternLight = new THREE.PointLight(0xffb35c, 6, 9, 1.6); lanternLight.position.y = 0.36; hook.add(lanternLight);
 const hookGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: 0xffb35c, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false }));
-hookGlow.position.y = 0.36; hookGlow.scale.setScalar(1.2); hookGlow.material.opacity = 0.7; hook.add(hookGlow);
+hookGlow.position.y = 0.36; hookGlow.scale.setScalar(1.2); hookGlow.material.opacity = 0.45; hook.add(hookGlow);
 const shieldMat = new THREE.ShaderMaterial({
   uniforms: { color: { value: new THREE.Color(0x7ff5e6) }, strength: { value: 0.6 }, time: { value: 0 }, hit: { value: 0 } },
   vertexShader: `varying vec3 vN; varying vec3 vV; varying vec3 vP;
@@ -683,9 +684,9 @@ function applyGearVisuals() {
   hookMat.color.setHex(ht.color); hookMat.emissive.setHex(ht.emissive); hookMat.metalness = ht.metal; hookMat.roughness = ht.rough;
   hookMat.emissiveIntensity = hookTier() >= 3 ? 0.55 : 0.3;
   hookRig.scale.setScalar(1 + S.gear.cap * 0.035);
-  lanternMat.emissive.setHex(lt.color); lanternMat.emissiveIntensity = 1.6 + lanternTier() * 0.45;
+  lanternMat.emissive.setHex(lt.color); lanternMat.emissiveIntensity = 1.4 + lanternTier() * 0.25;
   lanternLight.color.setHex(lt.color); lanternLight.intensity = 5 + S.gear.line * 0.7; lanternLight.distance = 8 + S.gear.line * 0.4;
-  hookGlow.material.color.setHex(lt.color); hookGlow.userData.base = 1.1 + S.gear.line * 0.06;
+  hookGlow.material.color.setHex(lt.color); hookGlow.userData.base = 1 + S.gear.line * 0.04;
   lineMat.color.setHex(lt.color).lerp(new THREE.Color(0xffffff), 0.4).multiplyScalar(0.7);
   trail.material.color.setHex(lt.color);
   shield.visible = S.gear.shield > 0;

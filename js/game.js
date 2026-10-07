@@ -720,7 +720,7 @@ const lanternMat = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0
 // sits in front of the hook so it lights passing creatures without blowing out the hook itself
 const lanternLight = new THREE.PointLight(0xffb35c, 3, 8, 1.2); lanternLight.position.set(0, 0.5, 1.4); hook.add(lanternLight);
 const hookGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: 0xffb35c, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false }));
-hookGlow.position.y = 0.36; hookGlow.scale.setScalar(1.2); hookGlow.material.opacity = 0.45; hook.add(hookGlow);
+hookGlow.position.y = 0.36; hookGlow.scale.setScalar(1.2); hookGlow.material.opacity = 0.3; hook.add(hookGlow);
 const shieldMat = new THREE.ShaderMaterial({
   uniforms: { color: { value: new THREE.Color(0x7ff5e6) }, strength: { value: 0.6 }, time: { value: 0 }, hit: { value: 0 } },
   vertexShader: `varying vec3 vN; varying vec3 vV; varying vec3 vP;
@@ -748,9 +748,9 @@ function applyGearVisuals() {
   hookMat.color.setHex(ht.color); hookMat.emissive.setHex(ht.emissive); hookMat.metalness = ht.metal; hookMat.roughness = ht.rough;
   hookMat.emissiveIntensity = hookTier() >= 3 ? 0.55 : 0.3;
   hookRig.scale.setScalar(1 + S.gear.cap * 0.035);
-  lanternMat.emissive.setHex(lt.color); lanternMat.emissiveIntensity = 1.4 + lanternTier() * 0.25;
+  lanternMat.emissive.setHex(lt.color); lanternMat.emissiveIntensity = 1.2 + lanternTier() * 0.15;
   lanternLight.color.setHex(lt.color); lanternLight.intensity = 2.5 + S.gear.line * 0.25; lanternLight.distance = 7 + S.gear.line * 0.3;
-  hookGlow.material.color.setHex(lt.color); hookGlow.userData.base = 1 + S.gear.line * 0.04;
+  hookGlow.material.color.setHex(lt.color); hookGlow.userData.base = Math.min(1.4, 0.9 + S.gear.line * 0.03);
   lineMat.color.setHex(lt.color).lerp(new THREE.Color(0xffffff), 0.4).multiplyScalar(0.7);
   trail.material.color.setHex(lt.color);
   shield.visible = S.gear.shield > 0;

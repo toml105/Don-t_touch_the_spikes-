@@ -593,13 +593,13 @@ function rebuildCars() {
   layoutTrain();
 }
 function layoutTrain() {
-  trainW = Math.min(8, viewW * 0.84);
+  trainW = Math.min(8.5, viewW * 0.9);
   const M = MODELS.train;
   if (trainModel) {
     if (trainModel.userData.card) { const ar = TEX.train ? TEX.train.image.width / TEX.train.image.height : 1.81; trainModel.scale.set(trainW, trainW / ar, 1); trainH = trainW / ar; }
-    else { trainModel.scale.setScalar(trainW); trainH = trainW * (M ? M.h : 0.4); }
+    else { trainModel.scale.setScalar(M.obj.scale.x * trainW); trainH = trainW * M.h; } // keep the unit-length base scale
   }
-  const cx = halfW - trainW / 2 - 0.85;
+  const cx = halfW - trainW / 2 - 0.2;
   trainBody.position.set(0, 0, 0);
   if (trainModel) trainModel.position.set(0, 0, 0);
   trainGroup.position.set(cx, TRAIN_Y, -1.2);
@@ -607,7 +607,7 @@ function layoutTrain() {
   const CM = MODELS.carriage;
   const cw = trainW * 0.3, ch = cw * (CM ? CM.h : 0.45);
   carGroups.forEach((g, i) => {
-    g.userData.body.scale.setScalar(CM ? cw : 1);
+    g.userData.body.scale.setScalar(CM ? CM.obj.scale.x * cw : 1);
     if (!CM) g.userData.body.scale.set(cw, ch, cw * 0.35);
     g.position.set(-trainW / 2 - cw * (i + 0.5) * 1.02, -trainH * 0.08, 0);
     const lvl = g.userData.level;

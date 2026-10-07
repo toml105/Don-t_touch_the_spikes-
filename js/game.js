@@ -53,7 +53,7 @@ const iconUrl = key => CDN + ASSETS[key][0] + '.webp';
 // Each layer has its own light: sun colour/strength, sky & ground bounce, rim light.
 const BIOMES = [
   { id: 'cloud',  name: 'Cloud Sea',       from: 0,   to: 120,  bg: 'bg_cloud',  fog: 0xf2c3b4, puff: 0xffffff, tint: '#ffd9c2', sun: 0xffd2a0, sunI: 1.92, sky: 0xffe6d2, ground: 0x7a5a7c, rim: 0xffb38a, exp: 0.82 },
-  { id: 'storm',  name: 'Storm Belt',      from: 120, to: 300,  bg: 'bg_storm',  fog: 0x2c2a63, puff: 0x8f94d6, tint: '#8f94d6', sun: 0xb4bcff, sunI: 1.04, sky: 0x8a90ff, ground: 0x1a1840, rim: 0x6fa8ff, exp: 1.15, lightning: true },
+  { id: 'storm',  name: 'Storm Belt',      from: 120, to: 300,  bg: 'bg_storm',  fog: 0x2c2a63, puff: 0x8f94d6, tint: '#8f94d6', sun: 0xb4bcff, sunI: 1.04, sky: 0x8a90ff, ground: 0x1a1840, rim: 0x6fa8ff, exp: 1.05, lightning: true },
   { id: 'aurora', name: 'Aurora Reef',     from: 300, to: 550,  bg: 'bg_aurora', fog: 0x0f2f48, puff: 0x63e2d3, tint: '#63e2d3', sun: 0x9fffe8, sunI: 1.2, sky: 0x63e2d3, ground: 0x2a1050, rim: 0xff7bd5, exp: 1.1 },
   { id: 'ruins',  name: 'Sunken Sky City', from: 550, to: 850,  bg: 'bg_ruins',  fog: 0x18265a, puff: 0xf3c46b, tint: '#f3c46b', sun: 0xffc27a, sunI: 1.36, sky: 0xffd08a, ground: 0x152050, rim: 0x7fb4ff, exp: 1.1 },
   { id: 'void',   name: 'The Underneath',  from: 850, to: 1400, bg: 'bg_void',   fog: 0x0b0718, puff: 0xa47bff, tint: '#a47bff', sun: 0xc8a8ff, sunI: 0.88, sky: 0xa47bff, ground: 0x050210, rim: 0x7fe8ff, exp: 1.2 },

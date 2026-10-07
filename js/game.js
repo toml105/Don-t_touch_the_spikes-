@@ -211,7 +211,7 @@ const rim = new THREE.DirectionalLight(0xffb38a, 1.6); rim.position.set(-6, 3, -
 
 const composer = new EffectComposer(renderer);
 composer.addPass(new RenderPass(scene, camera));
-const bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.5, 0.4, 0.92);
+const bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.42, 0.4, 0.93);
 composer.addPass(bloom);
 composer.addPass(new OutputPass());
 
@@ -599,7 +599,7 @@ function layoutTrain() {
     if (trainModel.userData.card) { const ar = TEX.train ? TEX.train.image.width / TEX.train.image.height : 1.81; trainModel.scale.set(trainW, trainW / ar, 1); trainH = trainW / ar; }
     else { trainModel.scale.setScalar(trainW); trainH = trainW * (M ? M.h : 0.4); }
   }
-  const cx = halfW + 0.35 - trainW / 2 - 0.25;
+  const cx = halfW - trainW / 2 - 0.85;
   trainBody.position.set(0, 0, 0);
   if (trainModel) trainModel.position.set(0, 0, 0);
   trainGroup.position.set(cx, TRAIN_Y, -1.2);
@@ -690,7 +690,7 @@ function applyGearVisuals() {
   lineMat.color.setHex(lt.color).lerp(new THREE.Color(0xffffff), 0.4).multiplyScalar(0.7);
   trail.material.color.setHex(lt.color);
   shield.visible = S.gear.shield > 0;
-  shieldMat.uniforms.strength.value = 0.18 + S.gear.shield * 0.06;
+  shieldMat.uniforms.strength.value = 0.12 + S.gear.shield * 0.035;
 }
 
 // ---------- Creatures -------------------------------------------------------
@@ -947,7 +947,7 @@ function frame() {
   const gb = hookGlow.userData.base || 2;
   hookGlow.scale.setScalar(gb * (0.92 + Math.sin(t * 6) * 0.08));
   // winch speed trail
-  trail.material.opacity = damp(trail.material.opacity, G.state === 'down' || G.state === 'up' ? clamp(speed / 30, 0, 0.9) : 0, 8, realDt);
+  trail.material.opacity = damp(trail.material.opacity, G.state === 'down' || G.state === 'up' ? clamp(speed / 40, 0, 0.55) : 0, 8, realDt);
   const tl = clamp(speed * 0.12, 0.1, 5);
   trail.scale.y = tl;
   trail.position.set(hook.position.x, hook.position.y + (G.state === 'up' ? -tl / 2 : tl / 2) + 0.2, hook.position.z - 0.05);

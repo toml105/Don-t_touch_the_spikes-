@@ -52,11 +52,11 @@ const iconUrl = key => CDN + ASSETS[key][0] + '.webp';
 // ---------- World data ----------------------------------------------------
 // Each layer has its own light: sun colour/strength, sky & ground bounce, rim light.
 const BIOMES = [
-  { id: 'cloud',  name: 'Cloud Sea',       from: 0,   to: 120,  bg: 'bg_cloud',  fog: 0xf2c3b4, puff: 0xffffff, tint: '#ffd9c2', sun: 0xffd2a0, sunI: 2.4, sky: 0xffe6d2, ground: 0x7a5a7c, rim: 0xffb38a, exp: 0.92 },
-  { id: 'storm',  name: 'Storm Belt',      from: 120, to: 300,  bg: 'bg_storm',  fog: 0x2c2a63, puff: 0x8f94d6, tint: '#8f94d6', sun: 0xb4bcff, sunI: 1.3, sky: 0x8a90ff, ground: 0x1a1840, rim: 0x6fa8ff, exp: 1.15, lightning: true },
-  { id: 'aurora', name: 'Aurora Reef',     from: 300, to: 550,  bg: 'bg_aurora', fog: 0x0f2f48, puff: 0x63e2d3, tint: '#63e2d3', sun: 0x9fffe8, sunI: 1.5, sky: 0x63e2d3, ground: 0x2a1050, rim: 0xff7bd5, exp: 1.2 },
-  { id: 'ruins',  name: 'Sunken Sky City', from: 550, to: 850,  bg: 'bg_ruins',  fog: 0x18265a, puff: 0xf3c46b, tint: '#f3c46b', sun: 0xffc27a, sunI: 1.7, sky: 0xffd08a, ground: 0x152050, rim: 0x7fb4ff, exp: 1.2 },
-  { id: 'void',   name: 'The Underneath',  from: 850, to: 1400, bg: 'bg_void',   fog: 0x0b0718, puff: 0xa47bff, tint: '#a47bff', sun: 0xc8a8ff, sunI: 1.1, sky: 0xa47bff, ground: 0x050210, rim: 0x7fe8ff, exp: 1.3 },
+  { id: 'cloud',  name: 'Cloud Sea',       from: 0,   to: 120,  bg: 'bg_cloud',  fog: 0xf2c3b4, puff: 0xffffff, tint: '#ffd9c2', sun: 0xffd2a0, sunI: 1.92, sky: 0xffe6d2, ground: 0x7a5a7c, rim: 0xffb38a, exp: 0.82 },
+  { id: 'storm',  name: 'Storm Belt',      from: 120, to: 300,  bg: 'bg_storm',  fog: 0x2c2a63, puff: 0x8f94d6, tint: '#8f94d6', sun: 0xb4bcff, sunI: 1.04, sky: 0x8a90ff, ground: 0x1a1840, rim: 0x6fa8ff, exp: 1.15, lightning: true },
+  { id: 'aurora', name: 'Aurora Reef',     from: 300, to: 550,  bg: 'bg_aurora', fog: 0x0f2f48, puff: 0x63e2d3, tint: '#63e2d3', sun: 0x9fffe8, sunI: 1.2, sky: 0x63e2d3, ground: 0x2a1050, rim: 0xff7bd5, exp: 1.1 },
+  { id: 'ruins',  name: 'Sunken Sky City', from: 550, to: 850,  bg: 'bg_ruins',  fog: 0x18265a, puff: 0xf3c46b, tint: '#f3c46b', sun: 0xffc27a, sunI: 1.36, sky: 0xffd08a, ground: 0x152050, rim: 0x7fb4ff, exp: 1.1 },
+  { id: 'void',   name: 'The Underneath',  from: 850, to: 1400, bg: 'bg_void',   fog: 0x0b0718, puff: 0xa47bff, tint: '#a47bff', sun: 0xc8a8ff, sunI: 0.88, sky: 0xa47bff, ground: 0x050210, rim: 0x7fe8ff, exp: 1.2 },
 ];
 const biomeAt = d => BIOMES.find(b => d < b.to) || BIOMES[BIOMES.length - 1];
 
@@ -206,14 +206,14 @@ scene.add(camera);
 const pmrem = new THREE.PMREMGenerator(renderer);
 scene.environment = pmrem.fromScene(new RoomEnvironment(renderer), 0.04).texture;
 
-const hemi = new THREE.HemisphereLight(0xffe6d2, 0x9a6f8c, 1.1); scene.add(hemi);
+const hemi = new THREE.HemisphereLight(0xffe6d2, 0x9a6f8c, 0.85); scene.add(hemi);
 const sun = new THREE.DirectionalLight(0xffd2a0, 2.6); sun.position.set(6, 10, 8); scene.add(sun); scene.add(sun.target);
 const rim = new THREE.DirectionalLight(0xffb38a, 1.6); rim.position.set(-6, 3, -10); scene.add(rim); scene.add(rim.target);
-const fill = new THREE.DirectionalLight(0xffffff, 0.9); fill.position.set(0, 0.5, 1); camera.add(fill); camera.add(fill.target); fill.target.position.set(0, 0, -1);
+const fill = new THREE.DirectionalLight(0xffffff, 0.45); fill.position.set(0, 0.5, 1); camera.add(fill); camera.add(fill.target); fill.target.position.set(0, 0, -1);
 
 const composer = new EffectComposer(renderer);
 composer.addPass(new RenderPass(scene, camera));
-const bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.3, 0.3, 0.94);
+const bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.2, 0.3, 0.95);
 composer.addPass(bloom);
 composer.addPass(new OutputPass());
 
@@ -311,10 +311,10 @@ function prepModel(gltf, key) {
       m.emissiveMap = m.map;
       if (sp && sp.glow) { // rare creatures shine with their own colours under bloom
         m.emissive = new THREE.Color(sp.glow);
-        m.emissiveIntensity = sp.rare ? 0.55 : 0.3;
+        m.emissiveIntensity = sp.rare ? 0.38 : 0.18;
       } else if (sp) {
         m.emissive = new THREE.Color(0xffffff);
-        m.emissiveIntensity = 0.22;
+        m.emissiveIntensity = 0.08;
       }
     }
   });
@@ -389,7 +389,7 @@ const backMat = new THREE.ShaderMaterial({
       vec3 c = mix(samp(uv), facet, 0.4) * dim;
       float v = smoothstep(1.2, 0.3, length(vUv - 0.5)); c *= mix(0.72, 1.0, v);
       c += flash * vec3(0.75, 0.8, 1.0) * (0.4 + 0.6 * c);
-      gl_FragColor = vec4(c * 0.9, 1.0);
+      gl_FragColor = vec4(c * 0.84, 1.0);
       #include <colorspace_fragment>
     }`,
   depthWrite: false, fog: false, toneMapped: false,

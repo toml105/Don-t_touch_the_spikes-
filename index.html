@@ -184,7 +184,7 @@ button:focus-visible { outline: 3px solid var(--red); outline-offset: 2px; }
 #loader .bar { position: relative; height: 4px; background: var(--paper-2); margin-top: 18px; }
 #loader .bar i { display: block; height: 100%; width: 0; background: var(--ink); transition: width .2s; }
 #loader p { position: relative; margin: 8px 0 0; font-size: 11px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gray); }
-#toasts { position: fixed; left: var(--g); right: var(--g); top: calc(env(safe-area-inset-top, 0px) + 92px); z-index: 9; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; pointer-events: none; }
+#toasts { position: fixed; left: var(--g); right: var(--g); bottom: calc(env(safe-area-inset-bottom, 0px) + 100px); z-index: 9; display: flex; flex-direction: column-reverse; align-items: flex-start; gap: 4px; pointer-events: none; }
 .toast { background: var(--ink); color: var(--paper); padding: 9px 12px; font-size: 12px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; animation: toast 2.6s forwards; max-width: 100%; }
 .toast::before { content: ""; display: inline-block; width: 8px; height: 8px; background: var(--red); margin-right: 8px; }
 .toast.gold { background: var(--red); }

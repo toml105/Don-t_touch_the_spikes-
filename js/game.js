@@ -434,7 +434,7 @@ function updateClouds(dt) {
       const d = data[i];
       d.x += d.drift * dt; if (d.x > d.wrap) d.x = -d.wrap; else if (d.x < -d.wrap) d.x = d.wrap;
       tmpE.set(0, d.rot, 0); tmpQ.setFromEuler(tmpE);
-      im.setMatrixAt(i, tmpM.compose(tmpP.set(d.x, d.y, d.z), tmpQ, tmpS.set(d.s, d.s * d.sy, d.s)));
+      im.setMatrixAt(i, tmpM.compose(tmpP.set(d.x, d.y, d.z), tmpQ, tmpS.set(d.s, d.s * d.sy, d.s * 0.6)));
     }
     im.instanceMatrix.needsUpdate = true;
   }
@@ -480,7 +480,7 @@ const motes = (() => {
 function buildSurface() {
   // the cloud deck right under the train, drifting past as the train flies
   cloudField(30, () => {
-    const z = rand(-9, 0.5), wrap = 16;
+    const z = rand(-11, -3.5), wrap = 16;
     return { x: rand(-wrap, wrap), y: rand(-3.4, -1.8), z, s: rand(2.4, 4.4), sy: rand(0.8, 1.1), rot: rand(-0.4, 0.4), drift: -rand(0.6, 1.4), wrap, color: 0xffffff };
   });
 }

@@ -1060,7 +1060,7 @@ function frame() {
   } else if (G.panel === 'gear') {
     wantZ = G.focus > 0 ? 5.6 : 7.5;
     wantX = hook.position.x;
-    camY = hook.position.y + 0.9 - visH(wantZ) * 0.3;
+    camY = hook.position.y + 0.9 - visH(wantZ) * 0.18;
   }
   if (G.focus > 0) G.focus -= realDt;
   const k = G.state === 'down' || G.state === 'up' ? 9 : 3;
@@ -1242,7 +1242,7 @@ function welcomeBack() {
 }
 
 // ---------- Boot --------------------------------------------------------------
-window.__cloudline = { G, S, hook, camera }; // handy for poking at the game from devtools
+window.__cloudline = { G, S, hook, camera, scene, line, trail, rays }; // handy for poking at the game from devtools
 (async function boot() {
   resize();
   let texDone = 0, packP = 0;

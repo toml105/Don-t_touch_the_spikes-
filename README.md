@@ -12,7 +12,10 @@ All art was generated with Higgsfield: the painted skies with GPT Image 2.5, and
 4. **Sell the haul**, then spend the coins:
    - **Gear**: longer line, bigger hook, faster winch, and a lantern shield that absorbs bumps on the way down. Every 4 levels the hook visibly evolves (Brass → Silver → Gold → Crystal → Starforged) and the lantern changes colour (Candle → Oil lamp → Aurora → Nebula → Sunheart).
    - **Train**: carriages that earn coins every second, including while the game is closed (up to 2 hours, plus 30 minutes per Sleeper Car level). Each one couples onto the train in 3D with its own roof prop: a steaming teapot, a fish tank, an observatory dome, a glowing moon, neon rings or a crown.
-5. Fill the **Skydex** with all 15 species. The first catch of each species pays a 5× bonus.
+5. **Spin** for new hooks. There are 13 to collect, from Common to Legendary, and each has its own look and perk: a longer line, extra shields, bigger catch reach, more hook space, higher sale prices or more golden creatures. Duplicates add a star (up to 5), and each star makes the perk stronger. You get a free spin every 20 minutes. Rare catches give 1 ticket and each new layer gives 2. You can also spin for coins. Epic or better is guaranteed at least every 10 spins.
+6. Fill the **Skydex** with all 15 species. The first catch of each species pays a 5× bonus.
+
+Every hook starts each dive with one free shield. Deeper hauls pay a depth bonus (×1.3 at 120 m, ×2 at 400 m). About 1 creature in 25 is golden and sells for 5×.
 
 | Layer | Depth | Residents |
 |---|---|---|

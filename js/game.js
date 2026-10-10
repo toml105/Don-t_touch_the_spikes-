@@ -99,10 +99,10 @@ const LANTERN_TIERS = [
 const hookTier = () => Math.min(HOOK_TIERS.length - 1, Math.floor(S.gear.cap / 4));
 const lanternTier = () => Math.min(LANTERN_TIERS.length - 1, Math.floor(S.gear.line / 4));
 const GEAR = {
-  line:   { name: 'Longer line',   tiers: LANTERN_TIERS, tierOf: l => Math.min(4, Math.floor(l / 4)), tierWord: 'lantern', desc: l => `Reach ${DEPTHS[Math.min(l + 1, DEPTHS.length - 1)]} m`, now: l => `${DEPTHS[l]} m`, max: DEPTHS.length - 1, cost: l => Math.round(20 * 1.8 ** l) },
+  line:   { name: 'Longer line',   tiers: LANTERN_TIERS, tierOf: l => Math.min(4, Math.floor(l / 4)), tierWord: 'lantern', desc: l => `Reach ${DEPTHS[Math.min(l + 1, DEPTHS.length - 1)]} m`, now: l => `${DEPTHS[l]} m${perk('depth') ? ` (+${perk('depth')} m from your hook)` : ''}`, max: DEPTHS.length - 1, cost: l => Math.round(15 * 1.72 ** l) },
   cap:    { name: 'Bigger hook',   tiers: HOOK_TIERS, tierOf: l => Math.min(4, Math.floor(l / 4)), tierWord: 'hook', desc: l => `Hold ${4 + l} creatures`, now: l => `${3 + l} creatures`, max: 17, cost: l => Math.round(30 * 1.85 ** l) },
   speed:  { name: 'Brass winch',   desc: l => `Drop at ${Math.round(9 + 1.8 * (l + 1))} m/s`, now: l => `${Math.round(9 + 1.8 * l)} m/s`, max: 12, cost: l => Math.round(60 * 2.05 ** l) },
-  shield: { name: 'Lantern shield', desc: l => `Shrug off ${l + 1} bump${l ? 's' : ''} on the way down`, now: l => l ? `${l} bump${l > 1 ? 's' : ''}` : 'none', max: 5, cost: l => Math.round(180 * 3.4 ** l) },
+  shield: { name: 'Lantern shield', desc: l => `Shrug off ${l + 2} bumps on the way down`, now: l => `${l + 1} bump${l ? 's' : ''}`, max: 6, cost: l => Math.round(140 * 2.6 ** l) },
 };
 const CARS = [
   { id: 'tea',    name: 'Tea Car',         blurb: 'Commuters pay for sky-brewed tea.',  base: 25,     growth: 1.15, inc: 0.4, unlock: 0 },
@@ -114,19 +114,67 @@ const CARS = [
 ];
 const carCost = (c, l) => Math.round(c.base * c.growth ** l);
 
+// Hook Spin: collectable hooks, each with its own look and perk. Duplicates add a star (max 5)
+// and every star makes the perk 50% stronger.
+const RARITY = {
+  C: { name: 'Common',    css: '#74746f', odds: 62 },
+  R: { name: 'Rare',      css: '#2463d6', odds: 27 },
+  E: { name: 'Epic',      css: '#8a2fd6', odds: 9 },
+  L: { name: 'Legendary', css: '#e3241b', odds: 2 },
+};
+const HOOKS = [
+  { id: 'brass',    name: 'Brass Classic',   r: 'C', color: 0xc08a45, perks: {},                              blurb: 'Where every captain starts.' },
+  { id: 'copper',   name: 'Copper Curl',     r: 'C', color: 0xd2774a, charm: 'ring',    perks: { value: 0.08 },              blurb: 'Buyers love a shiny hook.' },
+  { id: 'feather',  name: 'Feather Lure',    r: 'C', color: 0xeae3d2, charm: 'feather', perks: { dodge: 0.07 },              blurb: 'Slips between creatures.' },
+  { id: 'bubble',   name: 'Bubble Bob',      r: 'C', color: 0x8fd3ff, charm: 'bubble',  perks: { shield: 1 },                blurb: 'Bounces off trouble.' },
+  { id: 'magnet',   name: 'Magnet Fork',     r: 'R', color: 0xd8352a, charm: 'magnet',  perks: { magnet: 0.15 },             blurb: 'Creatures drift towards it.' },
+  { id: 'glass',    name: 'Glass Minnow',    r: 'R', color: 0xbff3ff, emissive: 0x2a8fa8, metal: 0.2, charm: 'gem', perks: { golden: 0.03 }, blurb: 'Golden creatures cannot resist.' },
+  { id: 'twin',     name: 'Twin Prong',      r: 'R', color: 0xe6ebf2, charm: 'twin',    perks: { cap: 1 },                   blurb: 'Two barbs, twice the room.' },
+  { id: 'storm',    name: 'Storm Barb',      r: 'R', color: 0x6fa8ff, emissive: 0x1a3a90, charm: 'spikes', perks: { speed: 0.08, dodge: 0.04 }, blurb: 'Forged in the Storm Belt.' },
+  { id: 'coral',    name: 'Coral Crown',     r: 'E', color: 0xff7b8a, emissive: 0x6a1020, charm: 'crown', perks: { value: 0.2, magnet: 0.1 }, blurb: 'Grown on the Aurora Reef.' },
+  { id: 'moon',     name: 'Moonhook',        r: 'E', color: 0xdfe6ff, emissive: 0x404a80, charm: 'moon',  perks: { depth: 40, shield: 1 },  blurb: 'Pulls the line a little deeper.' },
+  { id: 'phoenix',  name: 'Phoenix Talon',   r: 'E', color: 0xff9a3c, emissive: 0x8a2a00, charm: 'wings', perks: { golden: 0.05, value: 0.1 }, blurb: 'Turns catches to gold.' },
+  { id: 'dragon',   name: 'Dragon Spine',    r: 'L', color: 0x3fd49a, emissive: 0x0a5a3a, charm: 'spikes', perks: { cap: 2, magnet: 0.2, shield: 1 }, blurb: 'Scaled, spined and hungry.' },
+  { id: 'sunheart', name: 'Sunheart Anchor', r: 'L', color: 0xffd56a, emissive: 0x8a5a00, charm: 'sun',   perks: { depth: 80, value: 0.25, dodge: 0.08 }, blurb: 'A little sun on a string.' },
+];
+const HOOK_BY = Object.fromEntries(HOOKS.map(h => [h.id, h]));
+const INT_PERKS = new Set(['shield', 'cap', 'depth']);
+const perkOf = (h, key, stars) => { const v = (h.perks[key] || 0) * (1 + (stars - 1) * 0.5); return INT_PERKS.has(key) ? Math.round(v) : v; };
+const PERK_TEXT = {
+  value:  v => `+${Math.round(v * 100)}% sale value`,
+  dodge:  v => `${Math.round(v * 100)}% slimmer on the way down`,
+  shield: v => `+${v} shield`,
+  magnet: v => `+${Math.round(v * 100)}% catch reach`,
+  golden: v => `+${Math.round(v * 100)}% golden chance`,
+  cap:    v => `+${v} hook space`,
+  speed:  v => `+${Math.round(v * 100)}% drop speed`,
+  depth:  v => `+${v} m line`,
+};
+const perkList = (h, stars) => Object.keys(h.perks).map(k => PERK_TEXT[k](perkOf(h, k, stars)));
+const FREE_SPIN_MS = 20 * 60 * 1000;
+const spinCost = () => Math.round(100 * 1.35 ** (S.coinSpins || 0));
+const freeSpinReady = () => Date.now() >= (S.nextFree || 0);
+
 // ---------- Save ----------------------------------------------------------
 const SAVE_KEY = 'cloudline-express-v1';
-const fresh = () => ({ coins: 0, gear: { line: 0, cap: 0, speed: 0, shield: 0 }, cars: {}, dex: {}, deepest: 0, biomes: [0], lastSeen: Date.now(), muted: false, runs: 0 });
+const fresh = () => ({ coins: 0, gear: { line: 0, cap: 0, speed: 0, shield: 0 }, cars: {}, dex: {}, deepest: 0, biomes: [0], lastSeen: Date.now(), muted: false, runs: 0, hooks: { brass: 1 }, equip: 'brass', tickets: 0, coinSpins: 0, pity: 0, nextFree: 0 });
 let S = fresh();
 try { const raw = localStorage.getItem(SAVE_KEY); if (raw) S = Object.assign(fresh(), JSON.parse(raw)); } catch (e) { /* storage blocked */ }
 S.gear = Object.assign(fresh().gear, S.gear);
+S.hooks = Object.assign({ brass: 1 }, S.hooks);
+if (!HOOK_BY[S.equip] || !S.hooks[S.equip]) S.equip = 'brass';
 const save = () => { S.lastSeen = Date.now(); try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) { /* ignore */ } };
 
-const lineDepth = () => DEPTHS[S.gear.line];
-const capacity = () => 3 + S.gear.cap;
-const dropSpeed = () => 9 + 1.8 * S.gear.speed;
+const equipped = () => HOOK_BY[S.equip] || HOOKS[0];
+const perk = key => perkOf(equipped(), key, S.hooks[S.equip] || 1);
+const lineDepth = () => DEPTHS[S.gear.line] + perk('depth');
+const capacity = () => 3 + S.gear.cap + perk('cap');
+const dropSpeed = () => (9 + 1.8 * S.gear.speed) * (1 + perk('speed'));
+const totalShields = () => 1 + S.gear.shield + perk('shield'); // everyone gets one free bump
+const goldenChance = () => 0.04 + perk('golden');
 const incomePerSec = () => CARS.reduce((t, c) => t + (S.cars[c.id] || 0) * c.inc, 0);
-const valueMult = () => 1 + (S.cars.aqua || 0) * 0.08;
+const valueMult = () => (1 + (S.cars.aqua || 0) * 0.08) * (1 + perk('value'));
+const depthMult = d => Math.round((1 + d / 400) * 10) / 10; // deeper hauls pay more
 const offlineCapSec = () => (2 + 0.5 * (S.cars.sleep || 0)) * 3600;
 
 // ---------- Utilities -----------------------------------------------------
@@ -743,18 +791,45 @@ const lineMat = new THREE.LineBasicMaterial({ color: 0xfff4e2, transparent: true
 const line = new THREE.Line(lineGeo, lineMat); scene.add(line);
 const HOOK_HOME = new THREE.Vector3(0, 1.0, 0.4);
 
+const charm = new THREE.Group(); hookRig.add(charm);
+const charmMat = new THREE.MeshStandardMaterial({ color: 0xffffff, metalness: 0.5, roughness: 0.3, flatShading: true });
+const bubbleMat = new THREE.MeshStandardMaterial({ color: 0xbfe8ff, metalness: 0.1, roughness: 0.05, transparent: true, opacity: 0.45, flatShading: true });
+function buildCharm(kind) {
+  charm.clear();
+  const add = (geo, x, y, z = 0, rz = 0, mat = charmMat) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.rotation.z = rz; charm.add(m); return m; };
+  const spike = (r, h) => new THREE.ConeGeometry(r, h, 4);
+  if (kind === 'ring') { [0.04, -0.12].forEach(y => add(new THREE.TorusGeometry(0.07, 0.022, 4, 8), 0, y).rotation.x = Math.PI / 2); }
+  else if (kind === 'feather') { add(spike(0.06, 0.34), -0.13, -0.3, 0, 0.7).scale.z = 0.2; add(spike(0.05, 0.28), -0.08, -0.45, 0, 1.2).scale.z = 0.2; }
+  else if (kind === 'bubble') { add(new THREE.IcosahedronGeometry(0.13, 1), 0.15, -0.6, 0, 0, bubbleMat); add(new THREE.IcosahedronGeometry(0.06, 1), 0.3, -0.48, 0, 0, bubbleMat); }
+  else if (kind === 'magnet') { add(new THREE.TorusGeometry(0.11, 0.045, 4, 8, Math.PI), 0, -0.02, 0, Math.PI); }
+  else if (kind === 'gem') { add(new THREE.OctahedronGeometry(0.1), 0.15, -0.56); }
+  else if (kind === 'twin') { add(new THREE.TorusGeometry(0.15, 0.04, 4, 8, Math.PI * 1.15), -0.15, -0.37).rotation.set(0, Math.PI, Math.PI); add(spike(0.06, 0.16), -0.3, -0.27, 0, 0.25); }
+  else if (kind === 'spikes') { [-0.28, -0.14, 0, 0.12].forEach((y, i) => add(spike(0.035, 0.14), i % 2 ? 0.07 : -0.07, y, 0, i % 2 ? -Math.PI / 2 : Math.PI / 2)); }
+  else if (kind === 'crown') { for (let i = 0; i < 6; i++) { const a = i / 6 * Math.PI * 2; add(spike(0.03, 0.12), Math.cos(a) * 0.12, 0.5, Math.sin(a) * 0.12); } }
+  else if (kind === 'moon') { add(new THREE.TorusGeometry(0.17, 0.035, 4, 10, Math.PI * 1.3), 0, 0.36, -0.06, 0.9); }
+  else if (kind === 'wings') { [-1, 1].forEach(sd => { const w = add(spike(0.1, 0.36), sd * 0.17, 0.26, 0, -sd * 1.15); w.scale.z = 0.15; }); }
+  else if (kind === 'sun') { for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2; add(spike(0.03, 0.14), Math.cos(a) * 0.2, 0.36 + Math.sin(a) * 0.2, 0, a - Math.PI / 2); } }
+}
 function applyGearVisuals() {
-  const ht = HOOK_TIERS[hookTier()], lt = LANTERN_TIERS[lanternTier()];
-  hookMat.color.setHex(ht.color); hookMat.emissive.setHex(ht.emissive); hookMat.metalness = ht.metal; hookMat.roughness = ht.rough;
-  hookMat.emissiveIntensity = hookTier() >= 3 ? 0.55 : 0.3;
+  const lt = LANTERN_TIERS[lanternTier()], eq = equipped();
+  if (eq.id === 'brass') {
+    const ht = HOOK_TIERS[hookTier()];
+    hookMat.color.setHex(ht.color); hookMat.emissive.setHex(ht.emissive); hookMat.metalness = ht.metal; hookMat.roughness = ht.rough;
+    hookMat.emissiveIntensity = hookTier() >= 3 ? 0.55 : 0.3;
+  } else {
+    hookMat.color.setHex(eq.color); hookMat.emissive.setHex(eq.emissive || 0); hookMat.metalness = eq.metal ?? 0.9; hookMat.roughness = 0.2;
+    hookMat.emissiveIntensity = 0.5;
+  }
+  if (charm.userData.kind !== eq.charm) { buildCharm(eq.charm); charm.userData.kind = eq.charm; }
+  charmMat.color.setHex(eq.color); charmMat.emissive.setHex(eq.emissive || eq.color); charmMat.emissiveIntensity = eq.emissive ? 0.8 : 0.15;
   hookRig.scale.setScalar(1 + S.gear.cap * 0.035);
   lanternMat.emissive.setHex(lt.color); lanternMat.emissiveIntensity = 1.2 + lanternTier() * 0.15;
   lanternLight.color.setHex(lt.color); lanternLight.intensity = 2.5 + S.gear.line * 0.25; lanternLight.distance = 7 + S.gear.line * 0.3;
   hookGlow.material.color.setHex(lt.color); hookGlow.userData.base = Math.min(1.4, 0.9 + S.gear.line * 0.03);
   lineMat.color.setHex(lt.color).lerp(new THREE.Color(0xffffff), 0.4).multiplyScalar(0.7);
   trail.material.color.setHex(lt.color);
-  shield.visible = S.gear.shield > 0;
-  shieldMat.uniforms.strength.value = 0.12 + S.gear.shield * 0.035;
+  shield.visible = true;
+  shieldMat.uniforms.strength.value = 0.12 + totalShields() * 0.03;
 }
 
 // ---------- Creatures -------------------------------------------------------
@@ -774,16 +849,34 @@ function spriteBody(sp) {
 }
 const GLOW_MATS = {};
 const glowMatFor = sp => GLOW_MATS[sp.id] || (GLOW_MATS[sp.id] = new THREE.SpriteMaterial({ map: glowTex, color: sp.glow, transparent: true, opacity: sp.rare ? 0.35 : 0.18, depthWrite: false, blending: THREE.AdditiveBlending }));
+// golden variants: same model, gilded materials, 5x the price
+const GOLD_MATS = new Map();
+const goldGlowMat = new THREE.SpriteMaterial({ map: glowTex, color: 0xffc94a, transparent: true, opacity: 0.4, depthWrite: false, blending: THREE.AdditiveBlending });
+function gild(obj) {
+  obj.traverse(o => {
+    if (!o.isMesh) return;
+    let m = GOLD_MATS.get(o.material);
+    if (!m) {
+      m = o.material.clone(); m.color = new THREE.Color(0xffd36a);
+      if (m.emissive) { m.emissive.setHex(0xffa020); m.emissiveIntensity = 0.3; m.metalness = 0.75; m.roughness = 0.3; }
+      GOLD_MATS.set(o.material, m);
+    }
+    o.material = m;
+  });
+}
 function spawnCreature(sp, y) {
   const g = new THREE.Group();
   const M = MODELS[sp.id];
   let body, w = sp.size, h;
   if (M) { body = M.obj.clone(); body.scale.multiplyScalar(sp.size); h = sp.size * M.h; }
   else { body = spriteBody(sp); h = sp.size * 0.6; }
+  const golden = Math.random() < goldenChance();
+  if (golden) gild(body);
   const yawHolder = new THREE.Group(); yawHolder.add(body); g.add(yawHolder);
-  if (sp.glow) { const gl = new THREE.Sprite(glowMatFor(sp)); gl.scale.setScalar(w * (sp.rare ? 2.2 : 1.5)); g.add(gl); }
+  if (golden) { const gl = new THREE.Sprite(goldGlowMat); gl.scale.setScalar(w * 2.2); g.add(gl); }
+  else if (sp.glow) { const gl = new THREE.Sprite(glowMatFor(sp)); gl.scale.setScalar(w * (sp.rare ? 2.2 : 1.5)); g.add(gl); }
   const dir = Math.random() < 0.5 ? -1 : 1;
-  const c = { sp, g, yawHolder, w, h, x: rand(-halfW, halfW), y, baseY: y, dir, yaw: dir > 0 ? 0 : Math.PI, speed: sp.speed * rand(0.7, 1.3), phase: rand(0, 6.28), state: 'free', stun: 0, z: rand(-1.4, 0.8) };
+  const c = { sp, golden, g, yawHolder, w, h, x: rand(-halfW, halfW), y, baseY: y, dir, yaw: dir > 0 ? 0 : Math.PI, speed: sp.speed * rand(0.7, 1.3), phase: rand(0, 6.28), state: 'free', stun: 0, z: rand(-1.4, 0.8) };
   g.position.set(c.x, y, c.z);
   swim.add(g); creatures.push(c);
   return c;
@@ -800,7 +893,7 @@ function populate() {
   creatures.forEach(c => swim.remove(c.g));
   creatures = [];
   const bottom = lineDepth() + 18;
-  for (let d = 5; d < bottom; d += rand(1.8, 3.3)) {
+  for (let d = 6; d < bottom; d += rand(3.2, 5.0)) {
     const sp = pickSpecies(d); if (sp) spawnCreature(sp, -d);
   }
 }
@@ -814,7 +907,7 @@ function cast() {
   audio(); sfx.cast(); buzz(12);
   populate();
   G.state = 'down'; G.t = 0; G.depth = 0; G.vy = 2; G.crossed = false;
-  G.maxDepth = lineDepth(); G.reached = 0; G.shields = S.gear.shield; G.caught = []; G.newSpecies = new Set();
+  G.maxDepth = lineDepth(); G.reached = 0; G.shields = totalShields(); G.caught = []; G.newSpecies = new Set(); G.invuln = 0;
   G.targetX = hook.position.x; G.lastBiome = 0;
   S.runs++;
   $('#dock').hidden = true; $('#runhud').hidden = false; $('#meter').hidden = false;
@@ -833,7 +926,7 @@ function updateRunHud() {
   $('#depth').innerHTML = `${Math.round(G.depth)}<small> m</small>`;
   $('#haulChip').textContent = `${G.caught.length} / ${capacity()} caught`;
   const sc = $('#shieldChip');
-  sc.hidden = !S.gear.shield; sc.textContent = `Shield ${G.shields}`;
+  sc.hidden = false; sc.textContent = `Shield ${G.shields}`;
   const pct = clamp(G.depth / meterMax(), 0, 1) * 100;
   const mk = $('#meter .mark'); if (mk) mk.style.top = pct + '%';
 }
@@ -863,30 +956,37 @@ function surface() {
   G.state = 'surface'; G.surfaceT = 0;
   $('#runhud').hidden = true; $('#meter').hidden = true;
   const counts = {};
-  G.caught.forEach(c => { counts[c.sp.id] = (counts[c.sp.id] || 0) + 1; });
+  G.caught.forEach(c => { const k = c.sp.id + (c.golden ? '|g' : ''); counts[k] = (counts[k] || 0) + 1; });
   let total = 0, firstBonus = 0;
-  const rows = Object.entries(counts).map(([id, n]) => {
-    const sp = SP[id], v = Math.round(sp.value * valueMult()) * n;
+  const rows = Object.entries(counts).map(([k, n]) => {
+    const [id, g] = k.split('|'), golden = !!g;
+    const sp = SP[id], v = Math.round(sp.value * valueMult()) * n * (golden ? 5 : 1);
     total += v;
     const isNew = !S.dex[id];
     if (isNew) firstBonus += sp.value * 5;
     S.dex[id] = (S.dex[id] || 0) + n;
-    return { sp, n, v, isNew };
+    return { sp, n, v, isNew, golden };
   }).sort((a, b) => b.v - a.v);
   const deeper = Math.round(G.reached) > S.deepest;
   if (deeper) S.deepest = Math.round(G.reached);
-  setTimeout(() => showHaul(rows, firstBonus, total + firstBonus, deeper), 1100);
+  const dm = depthMult(G.reached);
+  const tickets = G.caught.filter(c => c.sp.rare).length;
+  S.tickets = (S.tickets || 0) + tickets;
+  save();
+  setTimeout(() => showHaul(rows, firstBonus, Math.round(total * dm) + firstBonus, deeper, dm, tickets), 1100);
 }
-function showHaul(rows, firstBonus, payout, deeper) {
+function showHaul(rows, firstBonus, payout, deeper, dm = 1, tickets = 0) {
   const m = $('#modal');
   const haul = rows.length
-    ? `<div class="haul">${rows.map(r => `<div class="${r.sp.rare ? 'rare' : ''}">${r.isNew ? '<span class="new">NEW</span>' : ''}<img src="${iconUrl(r.sp.id)}" alt=""><b>${r.n}× ${r.sp.name}</b><i class="num">${fmt(r.v)}</i></div>`).join('')}</div>`
+    ? `<div class="haul">${rows.map(r => `<div class="${r.sp.rare ? 'rare' : ''} ${r.golden ? 'gold' : ''}">${r.isNew ? '<span class="new">NEW</span>' : ''}<img src="${iconUrl(r.sp.id)}" alt=""><b>${r.n}× ${r.golden ? 'Golden ' : ''}${r.sp.name}</b><i class="num">${fmt(r.v)}</i></div>`).join('')}</div>`
     : '<p class="sub">The hook came back empty. Steer through creatures on the way up.</p>';
   m.innerHTML = `<div class="card" role="dialog" aria-label="Haul">
       <h2>${rows.length ? (rows.some(r => r.sp.rare) ? 'Legendary haul!' : 'Fine haul!') : 'Nothing biting'}</h2>
       <p class="sub">Reached ${Math.round(G.reached)} m${deeper ? ' · new record' : ''}</p>
       ${haul}
-      ${firstBonus ? `<p class="bonusline">+${fmt(firstBonus)} first-catch bonus for the Skydex</p>` : ''}
+      ${rows.length && dm > 1 ? `<p class="bonusline">×${dm.toFixed(1)} depth bonus for reaching ${Math.round(G.reached)} m</p>` : ''}
+      ${firstBonus ? `<p class="bonusline">${fmt(firstBonus)} first-catch bonus for the Skydex</p>` : ''}
+      ${tickets ? `<p class="bonusline">${tickets} spin ticket${tickets > 1 ? 's' : ''} from rare catches</p>` : ''}
       <div class="total num"><span class="coin"></span>${fmt(payout)}</div>
       <button class="big" id="bankBtn">Sell the haul</button>
     </div>`;
@@ -1021,7 +1121,8 @@ function frame() {
   shieldMat.uniforms.time.value = t;
   G.hitT = Math.max(0, G.hitT - realDt * 2.5);
   shieldMat.uniforms.hit.value = G.hitT;
-  shield.visible = S.gear.shield > 0 && (G.state === 'idle' || G.shields > 0 || G.hitT > 0);
+  shield.visible = G.state === 'idle' || G.shields > 0 || G.hitT > 0;
+  G.invuln = Math.max(0, (G.invuln || 0) - dt);
   shield.scale.setScalar(1 + G.hitT * 0.4 + Math.sin(t * 3) * 0.03);
 
   // --- biome entry
@@ -1030,7 +1131,7 @@ function frame() {
     if (bi > G.lastBiome) {
       G.lastBiome = bi;
       biomeToast(BIOMES[bi]);
-      if (!S.biomes.includes(bi)) { S.biomes.push(bi); sfx.biome(); toast(`Discovered ${BIOMES[bi].name}!`, 'gold'); G.flash = 0.8; }
+      if (!S.biomes.includes(bi)) { S.biomes.push(bi); S.tickets = (S.tickets || 0) + 2; sfx.biome(); toast(`Discovered ${BIOMES[bi].name}! +2 spin tickets`, 'gold'); G.flash = 0.8; }
     }
   }
   if (G.state === 'down' || G.state === 'up') updateRunHud();
@@ -1052,19 +1153,21 @@ function frame() {
     if (c.stun > 0) { c.stun -= dt; c.g.rotation.x = Math.sin(c.stun * 30) * 0.3; } else c.g.rotation.x = 0;
     c.g.position.set(c.x, c.y, c.z);
 
-    if ((G.state === 'down' || G.state === 'up') && c.stun <= 0) {
-      const dx = (hx - c.x) / (c.w * 0.42 + 0.18), dy = (hy - c.y) / (c.h * 0.45 + 0.18);
+    if ((G.state === 'down' || G.state === 'up') && c.stun <= 0 && !(G.state === 'down' && G.invuln > 0)) {
+      const reach = G.state === 'down' ? 0.72 * (1 - Math.min(0.4, perk('dodge'))) : 1.1 * (1 + perk('magnet'));
+      const dx = (hx - c.x) / ((c.w * 0.42 + 0.18) * reach), dy = (hy - c.y) / ((c.h * 0.45 + 0.18) * reach);
       if (dx * dx + dy * dy < 1) {
         if (G.state === 'down') {
           if (G.shields > 0) {
-            G.shields--; c.stun = 1.2; c.dir = hx > c.x ? -1 : 1; c.speed *= 2;
+            G.shields--; G.invuln = 0.6; c.stun = 1.2; c.dir = hx > c.x ? -1 : 1; c.speed *= 2;
             G.hitT = 1; burst(hook.position, 0x7ff5e6, 18, 5); sfx.bump(); buzz(10); G.shake = 0.15;
           } else { c.stun = 1.2; startReel('bumped'); burst(hook.position, 0xffffff, 10, 3); }
         } else if (G.caught.length < capacity()) {
           c.state = 'caught'; G.caught.push(c);
           const col = c.sp.glow || 0xfff1c4;
           burst(tmpV.set(c.x, c.y, c.z), col, c.sp.rare ? 40 : 14, c.sp.rare ? 7 : 4, c.sp.rare ? 0.6 : 0.4);
-          if (c.sp.rare) { G.timeScale = 0.25; G.shake = 0.4; G.flash = 0.35; sfx.rare(); buzz(40); toast(`${c.sp.name}!`, 'gold'); }
+          if (c.golden) burst(tmpV.set(c.x, c.y, c.z), 0xffc94a, 30, 6, 0.5);
+          if (c.sp.rare || c.golden) { G.timeScale = 0.25; G.shake = 0.4; G.flash = 0.35; sfx.rare(); buzz(40); toast(`${c.golden ? 'Golden ' : ''}${c.sp.name}!${c.sp.rare ? ' +1 spin ticket' : ''}`, 'gold'); }
           else { sfx.catch(G.caught.length); buzz(8); }
           if (!S.dex[c.sp.id] && !G.newSpecies.has(c.sp.id)) { G.newSpecies.add(c.sp.id); toast(`New species: ${c.sp.name}!`); }
           if (G.caught.length === capacity()) { $('#hint').hidden = false; $('#hint').textContent = 'Hook full! Racing home.'; }
@@ -1117,7 +1220,7 @@ function frame() {
     wantZ = Math.max(CAM_Z, needZ);
     wantX = trainGroup.position.x + trainW / 2 + 1 - span / 2;
     camY = TRAIN_Y + 0.9 - visH(wantZ) * 0.3;
-  } else if (G.panel === 'gear') {
+  } else if (G.panel === 'gear' || G.panel === 'spin') {
     wantZ = G.focus > 0 ? 5.6 : 7.5;
     wantX = hook.position.x;
     camY = hook.position.y + 0.9 - visH(wantZ) * 0.08;
@@ -1174,6 +1277,7 @@ function refreshHud(light) {
   const carAff = CARS.some(c => S.deepest >= c.unlock && S.coins >= carCost(c, S.cars[c.id] || 0));
   document.querySelector('[data-panel="gear"] .dot').hidden = !gearAff;
   document.querySelector('[data-panel="train"] .dot').hidden = !carAff;
+  document.querySelector('[data-panel="spin"] .dot').hidden = !(freeSpinReady() || S.tickets > 0);
   if (G.panel && light) updatePanelButtons();
   if (light) return;
   $('#muteBtn').innerHTML = S.muted
@@ -1190,7 +1294,7 @@ const hexCss = h => '#' + h.toString(16).padStart(6, '0');
 function openSheet(panel) {
   if (G.state !== 'idle') return;
   G.panel = panel;
-  const titles = { gear: ['Gear', 'Every 4 levels the hook and lantern change form'], train: ['The Train', 'Carriages earn coins even while you are offline'], dex: ['Skydex', `${Object.keys(S.dex).length} of ${SPECIES.length} species caught`], map: ['Sky Layers', 'How deep the sky goes'] };
+  const titles = { gear: ['Gear', 'Every 4 levels the hook and lantern change form'], train: ['The Train', 'Carriages earn coins even while you are offline'], dex: ['Skydex', `${Object.keys(S.dex).length} of ${SPECIES.length} species caught across five sky layers`], spin: ['Hook Spin', 'Every hook has its own look and perk. Duplicates add a star'] };
   $('#sheetTitle').textContent = titles[panel][0];
   $('#sheetSub').textContent = titles[panel][1];
   renderPanel();
@@ -1203,7 +1307,7 @@ function buyBtn(id, cost, maxed, label) {
   return `<button class="buy num" data-buy="${id}" data-cost="${cost}" ${S.coins < cost ? 'disabled' : ''}><span class="coin"></span>${fmt(cost)}</button>`;
 }
 function tierStrip(g, l) {
-  if (!g.tiers) return '';
+  if (!g.tiers || (g.tiers === HOOK_TIERS && S.equip !== 'brass')) return '';
   const cur = g.tierOf(l);
   const nextAt = (cur + 1) * 4;
   return `<div class="tiers">${g.tiers.map((t, i) => `<span class="tier ${i <= cur ? 'on' : ''} ${i === cur ? 'cur' : ''}" style="--c:${hexCss(t.color)}" title="${t.name}"></span>`).join('')}
@@ -1227,22 +1331,129 @@ function renderPanel() {
         ${locked ? '<button class="buy maxed" disabled>Locked</button>' : buyBtn('car:' + c.id, carCost(c, l), false)}</div>`;
     }).join('') + `<p class="note">Offline earnings cap: ${offlineCapSec() / 3600} h. Close the game at your stop, collect at the next.</p>`;
   } else if (G.panel === 'dex') {
-    body.innerHTML = BIOMES.map((b, bi) => `<div class="dexhead"><span><b>${String(bi + 1).padStart(2, '0')}</b> ${b.name}</span><span>${b.from}–${b.to} m</span></div><div class="dex">${SPECIES.filter(s => s.biome === bi).map(s => {
+    body.innerHTML = BIOMES.map((b, bi) => `<div class="dexhead"><span><b>${String(bi + 1).padStart(2, '0')}</b> ${S.deepest >= b.from ? b.name : 'Uncharted'}</span><span>${b.from}–${b.to} m${lineDepth() > b.from ? '' : ' · locked'}</span></div><div class="dex">${SPECIES.filter(s => s.biome === bi).map(s => {
       const n = S.dex[s.id] || 0;
       return `<div class="dexcard ${n ? '' : 'unknown'} ${s.rare ? 'rare' : ''}"><img src="${iconUrl(s.id)}" alt="${n ? s.name : 'Unknown creature'}" loading="lazy"><b>${n ? s.name : '???'}</b><span>${n ? `${n} caught · ${fmt(s.value)} each` : `Found below ${s.min} m`}</span></div>`;
     }).join('')}</div>`).join('');
-  } else if (G.panel === 'map') {
-    body.innerHTML = BIOMES.map((b, bi) => {
-      const seen = S.deepest >= b.from;
-      return `<div class="row ${seen ? '' : 'locked'}"><div class="ico">${String(bi + 1).padStart(2, '0')}</div>
-        <div><h3>${seen ? b.name : 'Uncharted'}</h3><p>${b.from}–${b.to} m · ${SPECIES.filter(s => s.biome === bi).filter(s => S.dex[s.id]).length}/3 species</p></div>
-        <span class="lvl">${lineDepth() > b.from ? 'In reach' : `Need ${b.from} m`}</span></div>`;
-    }).join('');
+  } else if (G.panel === 'spin') {
+    const eq = equipped(), owned = HOOKS.filter(h => S.hooks[h.id]).length;
+    body.innerHTML = `<div class="spinbar">
+        <button class="spinbtn red" data-spin="free" ${freeSpinReady() ? '' : 'disabled'}><b>Free spin</b><span id="freeTimer" class="num">${freeLabel()}</span></button>
+        <button class="spinbtn" data-spin="ticket" ${S.tickets > 0 ? '' : 'disabled'}><b>Ticket</b><span class="num">${S.tickets} left</span></button>
+        <button class="spinbtn" data-spin="coins" data-cost="${spinCost()}" ${S.coins >= spinCost() ? '' : 'disabled'}><b>Spin</b><span class="num"><i class="coin"></i>${fmt(spinCost())}</span></button>
+      </div>
+      <p class="note">${Object.entries(RARITY).map(([, r]) => `<i class="rdot" style="--rc:${r.css}"></i>${r.name} ${r.odds}%`).join(' · ')}. Epic or better at least every 10 spins. Rare catches give 1 ticket, new layers give 2.</p>
+      <div class="dexhead"><span><b>${String(owned).padStart(2, '0')}</b> Collection</span><span>${owned} of ${HOOKS.length}</span></div>
+      <div class="hooks">${HOOKS.map(h => {
+        const st = S.hooks[h.id] || 0;
+        if (!st) return `<div class="hookcell unknown" style="--rc:${RARITY[h.r].css}">${hookSvg(h, false)}<b>???</b><span>${RARITY[h.r].name}</span></div>`;
+        return `<button class="hookcell ${h.id === eq.id ? 'on' : ''}" data-equip="${h.id}" style="--rc:${RARITY[h.r].css}">${hookSvg(h)}<b>${h.name}</b><span class="stars">${starStr(st)}</span><span>${perkList(h, st).join(' · ') || h.blurb}</span><em>${h.id === eq.id ? 'Equipped' : 'Tap to equip'}</em></button>`;
+      }).join('')}</div>`;
+    body.querySelectorAll('[data-spin]').forEach(b => b.addEventListener('click', () => spin(b.dataset.spin)));
+    body.querySelectorAll('[data-equip]').forEach(b => b.addEventListener('click', () => equipHook(b.dataset.equip)));
   }
   body.querySelectorAll('[data-buy]').forEach(btn => btn.addEventListener('click', () => buy(btn.dataset.buy)));
 }
 function updatePanelButtons() {
   document.querySelectorAll('#sheetBody [data-buy]').forEach(b => { b.disabled = S.coins < +b.dataset.cost; });
+  if (G.panel === 'spin') {
+    const c = $('#sheetBody [data-spin="coins"]'); if (c) c.disabled = S.coins < spinCost();
+    const f = $('#sheetBody [data-spin="free"]'); if (f) f.disabled = !freeSpinReady();
+    const ft = $('#freeTimer'); if (ft) ft.textContent = freeLabel();
+  }
+}
+
+// ---------- Hook Spin --------------------------------------------------------------
+function freeLabel() {
+  const ms = (S.nextFree || 0) - Date.now();
+  if (ms <= 0) return 'Ready';
+  const m = Math.floor(ms / 60000), sec = Math.floor(ms / 1000) % 60;
+  return `${m}:${String(sec).padStart(2, '0')}`;
+}
+const starStr = n => '★'.repeat(n) + '☆'.repeat(5 - n);
+// Flat Swiss glyph of each hook: ink outline under the hook colour, plus its charm
+function hookSvg(h, owned = true) {
+  const col = owned ? hexCss(h.color) : '#c9c9c4', ink = owned ? '#111' : '#c9c9c4';
+  const charms = {
+    ring: '<path d="M14 16h12M14 23h12"/>',
+    feather: '<path d="M18 34l-9 6M18 28l-10 1"/>',
+    bubble: '<circle cx="28" cy="44" r="3.5"/><circle cx="37" cy="40" r="2"/>',
+    magnet: '<path d="M13 14v-4a7 7 0 0 1 14 0v4"/>',
+    gem: '<path d="M28 39l4 4-4 4-4-4z"/>',
+    twin: '<path d="M20 30a8 8 0 0 1-16 0v-6"/>',
+    spikes: '<path d="M20 12l-6 3M20 20l6 3M20 26l-6 3"/>',
+    crown: '<path d="M12 6l4 4 4-6 4 6 4-4"/>',
+    moon: '<path d="M12 10a8 8 0 0 0 16 0"/>',
+    wings: '<path d="M18 10l-10-4 6 9M22 10l10-4-6 9"/>',
+    sun: '<path d="M20 2v-2M10 6l-2-2M30 6l2-2M8 12h-3M32 12h3"/>',
+  };
+  const shape = `<path d="M20 9v21a8 8 0 0 0 16 0v-6"/><path d="M36 24l-5 5"/><circle cx="20" cy="6" r="3"/>${h.charm ? charms[h.charm] : ''}`;
+  return `<svg viewBox="-2 -4 44 54" fill="none" stroke-linecap="square" stroke-linejoin="miter"><g stroke="${ink}" stroke-width="6.5">${shape}</g><g stroke="${col}" stroke-width="3.5">${shape}</g>${owned ? '' : '<text x="20" y="34" text-anchor="middle" font-size="22" font-weight="900" fill="#111" stroke="none">?</text>'}</svg>`;
+}
+function rollHook() {
+  let r;
+  if ((S.pity || 0) >= 9) r = Math.random() < 0.2 ? 'L' : 'E';
+  else { const x = Math.random() * 100; r = x < RARITY.L.odds ? 'L' : x < RARITY.L.odds + RARITY.E.odds ? 'E' : x < 100 - RARITY.C.odds ? 'R' : 'C'; }
+  S.pity = r === 'E' || r === 'L' ? 0 : (S.pity || 0) + 1;
+  const pool = HOOKS.filter(h => h.r === r && h.id !== 'brass');
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+function spin(kind) {
+  if (G.state !== 'idle' || !$('#modal').hidden) return;
+  if (kind === 'free') { if (!freeSpinReady()) return; S.nextFree = Date.now() + FREE_SPIN_MS; }
+  else if (kind === 'ticket') { if (!(S.tickets > 0)) return; S.tickets--; }
+  else { const c = spinCost(); if (S.coins < c) return; S.coins -= c; S.coinSpins = (S.coinSpins || 0) + 1; }
+  audio();
+  const h = rollHook(), before = S.hooks[h.id] || 0;
+  const maxed = before >= 5;
+  if (maxed) S.tickets = (S.tickets || 0) + 1; else S.hooks[h.id] = before + 1;
+  save(); refreshHud(); renderPanel();
+  showSpin(h, before, maxed);
+}
+function showSpin(h, before, maxed) {
+  const m = $('#modal');
+  const CELL = 88, LAND = 30;
+  const weighted = () => { const x = Math.random() * 100; const r = x < 4 ? 'L' : x < 16 ? 'E' : x < 45 ? 'R' : 'C'; const pool = HOOKS.filter(k => k.r === r); return pool[Math.floor(Math.random() * pool.length)]; };
+  const strip = Array.from({ length: LAND + 4 }, (_, i) => i === LAND ? h : weighted());
+  m.innerHTML = `<div class="card" role="dialog" aria-label="Hook spin">
+    <h2>Hook Spin</h2><p class="sub" id="spinSub">Spinning…</p>
+    <div class="reel"><div class="strip">${strip.map(k => `<div class="cell" style="--rc:${RARITY[k.r].css}">${hookSvg(k)}</div>`).join('')}</div><i class="pin"></i></div>
+    <div id="spinResult"></div></div>`;
+  m.hidden = false;
+  const reel = m.querySelector('.reel'), el = m.querySelector('.strip');
+  const target = LAND * CELL + CELL / 2 - reel.clientWidth / 2 + rand(-30, 30);
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const dur = reduce ? 1 : 3200, t0 = performance.now();
+  let lastCell = -1;
+  (function step(now) {
+    const k = clamp((now - t0) / dur, 0, 1), e = 1 - (1 - k) ** 4, x = target * e;
+    el.style.transform = `translateX(${-x}px)`;
+    const cell = Math.floor((x + reel.clientWidth / 2) / CELL);
+    if (cell !== lastCell) { lastCell = cell; blip(900 + (cell % 3) * 60, 0.03, 'square', 0.025, 1); }
+    if (k < 1) requestAnimationFrame(step); else reveal();
+  })(t0);
+  function reveal() {
+    const st = S.hooks[h.id] || 5, rr = RARITY[h.r];
+    el.children[LAND].classList.add('win');
+    if (h.r === 'L' || h.r === 'E') { sfx.rare(); G.flash = 0.6; buzz(40); } else { sfx.tier(); buzz(15); }
+    $('#spinSub').textContent = maxed ? 'Already at five stars · ticket refunded' : before ? `Duplicate · now ${st} stars` : 'New hook!';
+    const isEq = S.equip === h.id;
+    $('#spinResult').innerHTML = `<div class="hookcard" style="--rc:${rr.css}">${hookSvg(h)}<div>
+        <span class="rar">${rr.name}</span><h3>${h.name}</h3><span class="stars">${starStr(st)}</span>
+        <p>${perkList(h, st).join('<br>')}</p><p class="blurb">${h.blurb}</p></div></div>
+      ${isEq ? '<button class="big" id="spinOk">Nice</button>' : '<button class="big" id="spinEquip">Equip</button><button class="ghost" id="spinOk">Keep current hook</button>'}`;
+    $('#spinOk').onclick = () => { m.hidden = true; };
+    const eqb = $('#spinEquip'); if (eqb) eqb.onclick = () => { m.hidden = true; equipHook(h.id); };
+  }
+}
+function equipHook(id) {
+  if (!S.hooks[id] || S.equip === id) return;
+  S.equip = id;
+  applyGearVisuals(); populate();
+  G.focus = 2.2; G.flash = 0.3;
+  burst(hook.position, HOOK_BY[id].color, 40, 5);
+  sfx.buy(); buzz(10);
+  save(); refreshHud(); if (G.panel) renderPanel();
 }
 function buy(id) {
   const [kind, key] = id.split(':');
@@ -1258,7 +1469,7 @@ function buy(id) {
     G.focus = tierAfter > tierBefore ? 2.2 : 1.1;
     burst(hook.position, key === 'shield' ? 0x7ff5e6 : LANTERN_TIERS[lanternTier()].color, tierAfter > tierBefore ? 50 : 18, tierAfter > tierBefore ? 6 : 3);
     if (key === 'shield') G.hitT = 1;
-    if (tierAfter > tierBefore) { sfx.tier(); toast(`${g.tiers[tierAfter].name} ${g.tierWord} unlocked!`, 'gold'); G.flash = 0.4; }
+    if (tierAfter > tierBefore && tierStrip(g, S.gear[key])) { sfx.tier(); toast(`${g.tiers[tierAfter].name} ${g.tierWord} unlocked!`, 'gold'); G.flash = 0.4; }
     else sfx.buy();
   } else {
     const c = CARS.find(x => x.id === key), l = S.cars[key] || 0;
@@ -1320,6 +1531,7 @@ window.__cloudline = { G, S, hook, camera, scene, line, trail }; // handy for po
   $('#loadText').textContent = 'All aboard';
   setTimeout(() => { $('#loader').style.opacity = '0'; setTimeout(() => $('#loader').remove(), 600); }, 250);
   if (S.runs === 0) setTimeout(() => toast('Tap Cast to drop your lantern hook'), 900);
+  else if (freeSpinReady()) setTimeout(() => toast('Free hook spin ready'), 900);
   welcomeBack();
   requestAnimationFrame(frame);
 })();

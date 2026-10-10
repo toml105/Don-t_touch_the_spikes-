@@ -174,7 +174,45 @@ button:focus-visible { outline: 3px solid var(--red); outline-offset: 2px; }
 .big::after { content: "→"; font-size: 22px; }
 .big:active { background: var(--ink); }
 .bonusline { margin: 10px 0 0; font-size: 12px; font-weight: 700; }
-.bonusline::before { content: "+ "; color: var(--red); }
+.bonusline::before { content: ""; display: inline-block; width: 7px; height: 7px; background: var(--red); margin-right: 8px; }
+.haul .gold b { color: #a8740a; }
+.haul .gold img { box-shadow: inset 0 -5px 0 #f3c046; }
+
+/* ---------- Hook spin ---------- */
+.spinbar { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; padding-top: 14px; }
+.spinbtn { border: 0; height: 64px; padding: 8px 10px; background: var(--ink); color: var(--paper); display: flex; flex-direction: column; justify-content: space-between; align-items: flex-start; text-align: left; min-width: 0; }
+.spinbtn b { font-size: 20px; line-height: .9; font-weight: 900; font-stretch: 72%; text-transform: uppercase; }
+.spinbtn span { font-size: 11px; font-weight: 800; letter-spacing: .06em; display: flex; align-items: center; gap: 5px; }
+.spinbtn .coin { width: 8px; height: 8px; }
+.spinbtn.red { background: var(--red); }
+.spinbtn:disabled { background: transparent; color: var(--gray); box-shadow: inset 0 0 0 1px var(--rule); cursor: default; }
+.spinbtn:disabled .coin { background: var(--gray); }
+.rdot { display: inline-block; width: 7px; height: 7px; background: var(--rc); margin-right: 4px; }
+.hooks { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.hookcell { position: relative; border: 0; background: none; text-align: left; padding: 10px 8px 12px 0; border-bottom: 1px solid var(--rule); min-width: 0; display: flex; flex-direction: column; font: inherit; color: inherit; }
+.hookcell:nth-child(3n+2), .hookcell:nth-child(3n) { padding-left: 8px; border-left: 1px solid var(--rule); }
+.hookcell svg { width: 100%; aspect-ratio: 1; background: var(--paper-2); box-shadow: inset 0 -5px 0 var(--rc); display: block; padding: 12%; }
+.hookcell b { font-size: 13px; line-height: 1.15; font-weight: 800; margin-top: 7px; font-stretch: 88%; }
+.hookcell span { font-size: 10px; color: var(--gray); font-weight: 600; margin-top: 3px; line-height: 1.3; }
+.hookcell .stars { color: var(--red); font-size: 11px; letter-spacing: 1px; }
+.hookcell em { font-style: normal; font-size: 9px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; margin-top: 6px; color: var(--gray); }
+.hookcell.on em { color: var(--paper); background: var(--ink); align-self: flex-start; padding: 2px 5px; }
+.hookcell.unknown b { color: var(--gray); }
+.reel { position: relative; overflow: hidden; height: 108px; border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink); margin: 0 0 14px; }
+.reel .strip { display: flex; height: 100%; will-change: transform; }
+.reel .cell { width: 88px; flex: none; height: 100%; border-right: 1px solid var(--rule); display: grid; place-items: center; box-shadow: inset 0 -6px 0 var(--rc); }
+.reel .cell svg { width: 58px; height: 70px; }
+.reel .cell.win { background: var(--paper-2); }
+.reel .pin { position: absolute; left: 50%; top: 0; bottom: 0; width: 3px; margin-left: -1.5px; background: var(--red); }
+.reel .pin::before { content: ""; position: absolute; left: -6px; top: 0; border: 7px solid transparent; border-top: 9px solid var(--red); border-bottom: 0; }
+.hookcard { display: grid; grid-template-columns: 104px minmax(0, 1fr); gap: 14px; align-items: start; margin-bottom: 14px; }
+.hookcard svg { width: 104px; height: 104px; background: var(--paper-2); box-shadow: inset 0 -6px 0 var(--rc); padding: 14px; }
+.hookcard .rar { display: inline-block; font-size: 10px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: #fff; background: var(--rc); padding: 2px 6px; }
+.hookcard h3 { margin: 6px 0 2px; font-size: 28px; line-height: .9; font-weight: 900; font-stretch: 72%; text-transform: uppercase; }
+.hookcard .stars { color: var(--red); letter-spacing: 2px; font-size: 14px; }
+.hookcard p { margin: 6px 0 0; font-size: 13px; font-weight: 700; line-height: 1.35; }
+.hookcard .blurb { color: var(--gray); font-weight: 500; font-size: 12px; }
+.ghost { width: 100%; border: 0; background: none; height: 44px; margin-top: 4px; font-size: 12px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--gray); text-align: left; }
 
 /* ---------- Loader / toasts ---------- */
 #loader { position: fixed; inset: 0; z-index: 20; background: var(--paper); transition: opacity .6s; display: grid; grid-template-rows: 1fr auto; padding: calc(env(safe-area-inset-top, 0px) + 28px) var(--g) calc(env(safe-area-inset-bottom, 0px) + 28px); overflow: hidden; }
@@ -242,9 +280,9 @@ button:focus-visible { outline: 3px solid var(--red); outline-offset: 2px; }
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square"><rect x="4" y="4" width="7" height="7"/><rect x="13" y="4" width="7" height="7"/><rect x="4" y="13" width="7" height="7"/><rect x="13" y="13" width="7" height="7" fill="currentColor"/></svg>
     Skydex
   </button>
-  <button class="tab" data-panel="map" aria-label="Sky layers">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square"><path d="M3 5h18M3 10h18M3 15h18M3 20h18"/></svg>
-    Layers
+  <button class="tab" data-panel="spin" aria-label="Hook spin">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18"/><circle cx="12" cy="12" r="2.5" fill="currentColor"/></svg>
+    Spin<span class="dot" hidden></span>
   </button>
 </div>
 
